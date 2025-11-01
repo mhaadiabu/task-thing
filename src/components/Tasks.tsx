@@ -5,6 +5,7 @@ import { ACTIONS, cn } from "@/lib/utils";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
+import { ButtonGroup } from "./ui/button-group";
 
 interface TaskProps {
   id: string;
@@ -43,12 +44,13 @@ const Tasks = ({ id, task, status, className }: TaskProps) => {
         </Label>
       </div>
 
-      <div className="flex gap-2 items-center justify-end">
-        <Button size="icon" onClick={() => setIsEditing(true)}>
+      <ButtonGroup>
+        <Button size="icon" onClick={() => setIsEditing(id)}>
           <Edit3 />
         </Button>
         <Button
           size="icon"
+          variant="destructive"
           onClick={() =>
             dispatch({
               type: ACTIONS.DELETE_TASK,
@@ -58,7 +60,7 @@ const Tasks = ({ id, task, status, className }: TaskProps) => {
         >
           <Trash2 />
         </Button>
-      </div>
+      </ButtonGroup>
     </div>
   );
 };

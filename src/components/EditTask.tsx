@@ -4,6 +4,7 @@ import { TaskContext } from "@/context/TaskContext";
 import { ACTIONS } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { ButtonGroup } from "./ui/button-group";
 
 interface TaskProps {
   id: string;
@@ -23,7 +24,7 @@ const EditTask = ({ id, task }: TaskProps) => {
       payload: { id: id, task: editedTask },
     });
 
-    setIsEditing(false);
+    setIsEditing(null);
   };
 
   return (
@@ -38,18 +39,18 @@ const EditTask = ({ id, task }: TaskProps) => {
         />
       </div>
 
-      <div className="flex gap-2 items-center justify-end">
+      <ButtonGroup>
         <Button
           variant="destructive"
           size="icon"
-          onClick={() => setIsEditing(false)}
+          onClick={() => setIsEditing(null)}
         >
           <X />
         </Button>
-        <Button size="icon" onClick={editTask}>
+        <Button variant="success" size="icon" onClick={editTask}>
           <Check />
         </Button>
-      </div>
+      </ButtonGroup>
     </div>
   );
 };

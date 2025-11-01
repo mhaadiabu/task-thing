@@ -14,20 +14,18 @@ const App = () => {
   console.log(tasks);
 
   return (
-    <main className="bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono dark">
+    <main className="bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark">
       <div className="flex flex-col max-w-5xl mx-auto py-4 sm:py-6">
         <CreateTask />
 
         <div className="flex flex-col gap-2.5 mt-4 w-full">
-          {tasks.map(({ id, task, status }) =>
-            isEditing ? (
-              <EditTask key={id} id={id} task={task} />
+          {tasks.map((task) =>
+            isEditing === task.id ? (
+              <EditTask key={task.id} id={task.id} task={task.task} />
             ) : (
               <Tasks
-                key={id}
-                id={id}
-                task={task}
-                status={status}
+                key={task.id}
+                {...task}
                 className="not-last:border-b pb-2.5"
               />
             ),
