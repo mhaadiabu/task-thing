@@ -1,9 +1,9 @@
 import { useReducer, useState } from "react";
-import { reducer, type TaskTypes } from "@/lib/utils";
+import { reducer } from "@/lib/utils";
 import { TaskContext } from "@/context/TaskContext";
 
 const TaskProvider = ({ children }: { children: React.ReactNode }) => {
-  const [tasks, dispatch] = useReducer(reducer, [] as TaskTypes[]);
+  const [tasks, dispatch] = useReducer(reducer, []);
   const [isEditing, setIsEditing] = useState<string | null>(null);
 
   return (
