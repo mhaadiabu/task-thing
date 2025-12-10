@@ -1,27 +1,24 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Check, X } from "lucide-react";
-import { TaskContext } from "@/context/TaskContext";
+import { useTaskContext } from "@/context/TaskContext";
 import { ACTIONS } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ButtonGroup } from "./ui/button-group";
 
-interface TaskProps {
+interface EditTaskProps {
   id: string;
   task: string;
 }
 
-const EditTask = ({ id, task }: TaskProps) => {
+const EditTask = ({ id, task }: EditTaskProps) => {
   const [editedTask, setEditedTask] = useState(task);
-
-  const context = useContext(TaskContext);
-
-  const { dispatch, setIsEditing } = context!;
+  const { dispatch, setIsEditing } = useTaskContext();
 
   const editTask = () => {
     dispatch({
       type: ACTIONS.EDIT_TASK,
-      payload: { id: id, task: editedTask },
+      payload: { id: id, task: editedTask.trim() },
     });
 
     setIsEditing(null);
@@ -32,9 +29,16 @@ const EditTask = ({ id, task }: TaskProps) => {
       <div className="flex gap-2 items-center justify-start w-full">
         <Input
           type="text"
+          name="edit-task"
           value={editedTask}
           onChange={(e) => setEditedTask(e.target.value)}
-          onBlur={editTask}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              editTask();
+            } else if (e.key === "Escape") {
+              setIsEditing(null);
+            }
+          }}
           autoFocus
         />
       </div>
@@ -47,7 +51,7 @@ const EditTask = ({ id, task }: TaskProps) => {
         >
           <X />
         </Button>
-        <Button variant="success" size="icon" onClick={editTask}>
+        <Button size="icon" onClick={editTask}>
           <Check />
         </Button>
       </ButtonGroup>
