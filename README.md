@@ -20,13 +20,13 @@ A modern, full-stack task management application built with React, TypeScript, a
 - **TypeScript** - Type safety
 - **Vite** - Build tool (using Rolldown)
 - **Tailwind CSS 4** - Styling
-- **Radix UI** - Accessible UI components
+- **Radix UI/Shadcn** - Accessible UI components
 - **Lucide React** - Icons
 
 ### Backend/Database
 - **PostgreSQL** - Database
 - **Drizzle ORM** - Type-safe database toolkit
-- **Better Auth** - Authentication library (configured but optional)
+- **Better Auth** - Authentication library
 
 ## Prerequisites
 
@@ -49,6 +49,8 @@ cd task-tracker
 pnpm install
 # or
 npm install
+# or
+bun install
 ```
 
 ### 3. Set up environment variables
@@ -75,9 +77,11 @@ npx drizzle-kit push
 pnpm dev
 # or
 npm run dev
+# or
+bun run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The app should be available at `http://localhost:5173`
 
 ## Project Structure
 
@@ -111,6 +115,7 @@ The application uses the following main tables:
 - `account` - OAuth/credential accounts
 - `session` - User sessions
 - `verification` - Email verification tokens
+- `tasks` - Tasks
 
 (Note: Task schema would be defined in `src/db/schema.ts`)
 
@@ -137,3 +142,4 @@ MIT
 - [Better Auth](https://www.better-auth.com/) - Authentication library
 - [Radix UI](https://www.radix-ui.com/) - Unstyled, accessible components
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Shadcn](https://ui.shadcn.com/) - Reusable, customizable component library
