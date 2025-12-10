@@ -1,6 +1,6 @@
 import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CreateTask from '@/components/CreateTask';
@@ -10,7 +10,7 @@ import Tasks from '@/components/Tasks';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute('/')({
   component: App,
 });
 
@@ -44,7 +44,10 @@ function App() {
   );
 
   console.log(filteredTasks);
-  console.log(session?.user.name);
+  
+  if (session) {
+    console.log(session.user);
+  }
 
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
@@ -88,4 +91,4 @@ function App() {
       )}
     </main>
   );
-};
+}
