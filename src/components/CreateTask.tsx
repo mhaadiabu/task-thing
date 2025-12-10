@@ -1,40 +1,69 @@
-import { TaskContext } from "@/context/TaskContext";
+import { useTaskContext } from "@/context/TaskContext";
 import { ACTIONS } from "@/lib/utils";
-import { useContext, useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { ButtonGroup } from "./ui/button-group";
 
-const CreateTask = () => {
+interface CreateTaskProps {
+  onCancel: () => void;
+}
+
+const CreateTask = ({ onCancel }: CreateTaskProps) => {
   const [taskItem, setTaskItem] = useState("");
-
-  const context = useContext(TaskContext);
-
-  const { dispatch } = context!;
+  const { dispatch } = useTaskContext();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const createTask = () => {
+    if (taskItem.length < 1) {
+      if (inputRef.current) {
+        inputRef.current.setAttribute("aria-invalid", "true");
+      }
+      return;
+    }
+
     dispatch({
       type: ACTIONS.CREATE_TASK,
-      payload: { task: taskItem },
+      payload: { task: taskItem.trim() },
     });
 
     setTaskItem("");
+
+    onCancel();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTaskItem(e.target.value);
+    if (e.target.value.length > 0 && inputRef.current) {
+      inputRef.current.setAttribute("aria-invalid", "false");
+    }
   };
 
   return (
-    <div className="flex flex-1 w-full mx-auto py-2 gap-2.5 items-center">
+    <div className="flex flex-col w-full mx-auto py-2 gap-2.5 items-end">
       <Input
-        type="search"
+        ref={inputRef}
+        type="text"
+        name="task"
         value={taskItem}
         placeholder="Add a new task..."
-        onChange={(e) => setTaskItem(e.target.value)}
+        onChange={handleChange}
+        onKeyDown={(e) => e.key === "Enter" && createTask()}
+        aria-invalid="false"
+        autoFocus
       />
-      <Button onClick={createTask} className="max-md:hidden">
-        Click to Add
-      </Button>
-      <Button size="icon" onClick={createTask} className="md:hidden">
-        <Plus />
-      </Button>
+      <ButtonGroup>
+        <Button variant="destructive" onClick={onCancel}>
+          <X />
+          <span className="max-md:hidden">Cancel</span>
+        </Button>
+
+        <Button onClick={createTask}>
+          <span className="max-md:hidden">Click to Add</span>
+          <Plus />
+        </Button>
+      </ButtonGroup>
     </div>
   );
 };
