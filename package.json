@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"ts-node server.ts\"",
     "dev:client": "vite",
-    "dev:server": "ts-node server.ts",
+    "dev:server": "tsx server.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -31,7 +31,6 @@
     "pg": "^8.16.3",
     "react": "19.3.0-canary-561ee24d-20251101",
     "react-dom": "19.3.0-canary-561ee24d-20251101",
-    "react-scan": "^0.4.3",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2"
