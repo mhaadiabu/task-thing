@@ -2,8 +2,8 @@ export interface TaskTypes {
   id: string;
   task: string;
   status: "pending" | "completed";
-  createdAt: number;
-  updatedAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ActionTypes {
@@ -20,21 +20,23 @@ export const ACTIONS = {
   UPDATE_TASK: "update-task",
   EDIT_TASK: "edit-task",
   DELETE_TASK: "delete-task",
-} as const;
+} satisfies Record<string, ActionTypes["type"]>;
 
 const newTodo = (task: string) => {
   const entry: TaskTypes = {
     id: crypto.randomUUID(),
     task: task,
     status: "pending",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   return entry;
 };
 
 const reducer = (tasks: TaskTypes[], action: ActionTypes): TaskTypes[] => {
+  const now = new Date().toISOString();
+
   switch (action.type) {
     case ACTIONS.CREATE_TASK:
       if (action.payload.task === undefined || action.payload.task.length < 1)
@@ -46,7 +48,7 @@ const reducer = (tasks: TaskTypes[], action: ActionTypes): TaskTypes[] => {
           return {
             ...task,
             status: task.status === "pending" ? "completed" : "pending",
-            updatedAt: Date.now(),
+            updatedAt: now,
           };
         }
         return task;
@@ -59,13 +61,13 @@ const reducer = (tasks: TaskTypes[], action: ActionTypes): TaskTypes[] => {
             ...(action.payload.task !== undefined && {
               task: action.payload.task,
             }),
-            updatedAt: Date.now(),
+            updatedAt: now,
           };
         }
         return task;
       });
     case ACTIONS.DELETE_TASK:
-      return tasks.filter((task) => task?.id !== action.payload.id);
+      return tasks.filter((task) => task.id !== action.payload.id);
     default:
       return tasks;
   }
