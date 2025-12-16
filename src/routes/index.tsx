@@ -1,20 +1,21 @@
-import { useTaskContext } from '@/context/TaskContext';
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { createFileRoute } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
 import CreateTask from '@/components/CreateTask';
 import EditTask from '@/components/EditTask';
 import SearchTask from '@/components/SearchTask';
 import Tasks from '@/components/Tasks';
 import { Button } from '@/components/ui/button';
+import { useTaskContext } from '@/context/TaskContext';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export const Route = createFileRoute('/')({
   component: App,
 });
 
 function App() {
+  const navigate = useNavigate();
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
   const { tasks, isEditing } = useTaskContext();
@@ -43,10 +44,8 @@ function App() {
     [tasks, search],
   );
 
-  console.log(filteredTasks);
-  
-  if (session) {
-    console.log(session.user);
+  if (!session && !loading) {
+    navigate({ to: '/auth/sign-in' });
   }
 
   return (
@@ -60,6 +59,8 @@ function App() {
             onChange={(e) => setSearch(e.target.value)}
             onClear={() => setSearch('')}
           />
+
+          <p>{session?.user.name}</p>
 
           <div className='flex flex-col gap-2.5 mt-4 w-full'>
             {filteredTasks.map((task) =>
@@ -76,7 +77,7 @@ function App() {
           </div>
           <div>
             {showTaskInput ? (
-              <CreateTask onCancel={() => setShowTaskInput((prev) => !prev)} />
+              <CreateTask onCancel={() => setShowTaskInput(false)} />
             ) : (
               <Button
                 onClick={() => setShowTaskInput((prev) => !prev)}
