@@ -1,23 +1,23 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/auth/sign-in")({
+export const Route = createFileRoute('/auth/sign-in')({
   component: SignInPage,
 });
 
 function SignInPage() {
   const navigate = useNavigate();
-  // const router = useRouter();
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
-  const [errorMessage, setErrorMessage] = useState<string | undefined>("");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,47 +28,56 @@ function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage("");
+    setErrorMessage('');
 
     await authClient.signIn.email(
       {
         ...formData,
-        callbackURL: "/",
+        callbackURL: '/',
       },
       {
         onError: (error) => {
           setErrorMessage(error.error.message);
+          setIsLoading(false);
         },
         onSuccess: () => {
-          navigate({ to: "/" });
+          setIsLoading(false);
+          setSuccessMessage('Signed in successfully!');
+          setTimeout(() => navigate({ to: '/' }), 2000);
         },
       },
     );
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">Log In</h1>
-        <p className="text-muted-foreground">
+    <div className='space-y-6'>
+      <div className='space-y-2 text-center'>
+        <h1 className='text-3xl font-bold'>Sign In</h1>
+        <p className='text-muted-foreground'>
           Enter your information to continue
         </p>
       </div>
 
       {errorMessage && (
-        <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-          <p className="text-sm text-destructive">{errorMessage}</p>
+        <div className='p-3 rounded-md bg-destructive/10 border border-destructive/20'>
+          <p className='text-sm text-destructive'>{errorMessage}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+      {successMessage && (
+        <div className='p-3 rounded-md bg-green-100 border border-green-200'>
+          <p className='text-sm text-green-800'>{successMessage}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className='space-y-4'>
+        <div className='space-y-2'>
+          <Label htmlFor='email'>Email</Label>
           <Input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="you@example.com"
+            type='email'
+            id='email'
+            name='email'
+            placeholder='you@example.com'
             required
             value={formData.email}
             onChange={handleChange}
@@ -76,34 +85,36 @@ function SignInPage() {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+        <div className='space-y-2'>
+          <Label htmlFor='password'>Password</Label>
           <Input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="••••••••"
+            type='password'
+            id='password'
+            name='password'
+            placeholder='••••••••'
             required
             minLength={8}
             value={formData.password}
             onChange={handleChange}
             disabled={isLoading}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className='text-xs text-muted-foreground'>
             Must be at least 8 characters long
           </p>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Signing In..." : "Sign In"}
+        <Button type='submit' className='w-full' disabled={isLoading}>
+          {isLoading ? 'Creating account...' : 'Sign In'}
         </Button>
       </form>
 
-      <div className="text-center text-sm">
-        <span className="text-muted-foreground">Don't have an account? </span>
+      <div className='text-center text-sm'>
+        <span className='text-muted-foreground'>
+          Don&apos;t have an account?{' '}
+        </span>
         <Link
-          to="/auth/sign-up"
-          className="text-primary hover:underline font-medium"
+          to='/auth/sign-up'
+          className='text-primary hover:underline font-medium'
         >
           Sign up
         </Link>
