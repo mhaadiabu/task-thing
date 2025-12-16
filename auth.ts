@@ -1,17 +1,23 @@
-import { betterAuth } from "better-auth";
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from './server/db';
+import * as schema from './server/db/auth-schema';
+import 'dotenv/config';
 
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-
-import { db } from "./src/db";
-
-import "dotenv/config";
-
-const AUTH_BASE_URL = process.env.AUTH_BASE_URL ?? "http://localhost:3000";
+const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
 
 export const auth = betterAuth({
-  baseURL: AUTH_BASE_URL,
+  baseURL: BETTER_AUTH_URL,
+  allowedOrigins: ['http://localhost:5173', BETTER_AUTH_URL],
+  trustedOrigins: ['http://localhost:5173'],
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+  },
   database: drizzleAdapter(db, {
-    provider: "pg",
+    provider: 'pg',
+    schema: schema,
   }),
   emailAndPassword: {
     enabled: true,
