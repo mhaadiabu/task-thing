@@ -8,9 +8,9 @@ A modern, full-stack task management application built with React, TypeScript, a
 - ✅ Mark tasks as complete/incomplete
 - ✅ Dark mode UI with Tailwind CSS
 - ✅ PostgreSQL database with Drizzle ORM
-- ✅ Authentication ready (Better Auth integration)
+- ✅ Authentication with Better Auth
+- ✅ Type-safe API with tRPC
 - ✅ Responsive design
-- ✅ Type-safe with TypeScript
 - ✅ Modern React 19 with Context API
 
 ## Tech Stack
@@ -22,17 +22,20 @@ A modern, full-stack task management application built with React, TypeScript, a
 - **Tailwind CSS 4** - Styling
 - **Radix UI/Shadcn** - Accessible UI components
 - **Lucide React** - Icons
+- **TanStack Router** - Type-safe routing
 
 ### Backend/Database
+- **Node.js** - JavaScript runtime
+- **tRPC** - Type-safe APIs
 - **PostgreSQL** - Database
 - **Drizzle ORM** - Type-safe database toolkit
 - **Better Auth** - Authentication library
 
 ## Prerequisites
 
-- Node.js 18+ (or Bun/pnpm)
+- Node.js 18+
 - PostgreSQL database
-- pnpm (recommended) or npm
+- pnpm (recommended)
 
 ## Getting Started
 
@@ -47,10 +50,6 @@ cd task-tracker
 
 ```bash
 pnpm install
-# or
-npm install
-# or
-bun install
 ```
 
 ### 3. Set up environment variables
@@ -58,42 +57,45 @@ bun install
 Create a `.env` file in the root directory:
 
 ```env
-DATABASE_URL=postgresql://username:password@localhost:5432/task_tracker
+DATABASE_URL="postgresql://username:password@localhost:5432/task_tracker"
+BETTER_AUTH_URL="http://localhost:5173"
+BETTER_AUTH_SECRET="your-super-secret-key-at-least-32-characters-long"
 ```
 
-Replace with your PostgreSQL connection string.
+Replace with your PostgreSQL connection string and generate a secure secret.
 
 ### 4. Run database migrations
 
+This command pushes your Drizzle schema changes to the database.
+
 ```bash
-pnpm drizzle-kit push
-# or
-npx drizzle-kit push
+pnpm db:push
 ```
 
 ### 5. Start the development server
 
+This command starts the Vite development server with the backend API proxied.
+
 ```bash
 pnpm dev
-# or
-npm run dev
-# or
-bun run dev
 ```
 
-The app should be available at `http://localhost:5173`
+The app will be available at `http://localhost:5173`. The backend API endpoints (`/api/auth` and `/trpc`) are automatically proxied to the Node.js server.
 
 ## Project Structure
 
 ```
 task-tracker/
-├── src/
-│   ├── components/      # React components (Tasks, CreateTask, EditTask)
-│   ├── context/         # React Context (TaskContext)
-│   ├── db/              # Database schema and connection
-│   ├── lib/             # Utility functions
-│   ├── App.tsx          # Main application component
-│   └── main.tsx         # Application entry point
+├── server/              # Backend server (Node.js, tRPC, Better Auth)
+│   ├── db/              # Drizzle schema and database connection
+│   ├── index.ts         # Server entry point
+│   └── trpc.ts          # tRPC initialization
+├── src/                 # Frontend application (Vite, React)
+│   ├── components/      # React components
+│   ├── context/         # React Context
+│   ├── lib/             # Utility functions and auth client
+│   ├── routes/          # TanStack Router routes
+│   └── utils/           # tRPC client setup
 ├── drizzle/             # Database migrations
 ├── public/              # Static assets
 ├── auth.ts              # Better Auth configuration
@@ -103,25 +105,19 @@ task-tracker/
 
 ## Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint
-
-## Database Schema
-
-The application uses the following main tables:
-- `user` - User accounts
-- `account` - OAuth/credential accounts
-- `session` - User sessions
-- `verification` - Email verification tokens
-- `tasks` - Tasks
-
-(Note: Task schema would be defined in `src/db/schema.ts`)
+- `pnpm dev` - Starts both the client and server in watch mode.
+- `pnpm dev:client` - Starts the Vite frontend server only.
+- `pnpm dev:server` - Starts the Node.js backend server only.
+- `pnpm build` - Builds the frontend for production.
+- `pnpm preview` - Previews the production build.
+- `pnpm lint` - Runs ESLint.
+- `pnpm db:generate` - Generates a new SQL migration file from your schema.
+- `pnpm db:push` - Pushes schema changes directly to the database.
+- `pnpm db:studio` - Opens the Drizzle Studio to browse your data.
 
 ## Authentication
 
-This project includes Better Auth integration for user authentication with email/password support. Authentication is configured but can be enabled/disabled based on your needs.
+This project uses Better Auth for user authentication, with endpoints exposed at `/api/auth`. The server is configured to handle these requests, providing a solid foundation for user accounts, sessions, and protected routes.
 
 ## Contributing
 
@@ -140,6 +136,7 @@ MIT
 - [Vite](https://vite.dev/) - Next generation frontend tooling
 - [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
 - [Better Auth](https://www.better-auth.com/) - Authentication library
+- [tRPC](https://trpc.io/) - End-to-end typesafe APIs
 - [Radix UI](https://www.radix-ui.com/) - Unstyled, accessible components
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Shadcn](https://ui.shadcn.com/) - Reusable, customizable component library
