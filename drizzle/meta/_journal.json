@@ -15,6 +15,20 @@
       "when": 1762307676947,
       "tag": "0001_wakeful_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765859019680,
+      "tag": "0002_early_talkback",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765859613658,
+      "tag": "0003_broken_synch",
+      "breakpoints": true
     }
   ]
 }
