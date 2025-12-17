@@ -10,6 +10,13 @@ export const Route = createFileRoute('/auth/sign-up')({
   component: SignUpPage,
 });
 
+/**
+ * Render the sign-up page and handle user registration.
+ *
+ * Renders a form that collects name, email, and password (minimum 8 characters), submits these to the authentication client, displays error or success banners, disables inputs while the request is in progress, and navigates to the home page two seconds after a successful signup.
+ *
+ * @returns The sign-up page React element.
+ */
 function SignUpPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
