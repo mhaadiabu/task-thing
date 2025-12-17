@@ -10,6 +10,15 @@ export const Route = createFileRoute('/auth/sign-in')({
   component: SignInPage,
 });
 
+/**
+ * Render the sign-in page containing an email/password form and client-side authentication flow.
+ *
+ * Renders input fields for email and password, manages local form and UI state (error and success messages, loading),
+ * submits credentials via the authentication client, displays feedback on error or success, disables inputs while
+ * a request is in progress, and navigates to the root path after successful sign-in.
+ *
+ * @returns The JSX element for the sign-in page.
+ */
 function SignInPage() {
   const navigate = useNavigate();
   const [ formData, setFormData ] = useState({
