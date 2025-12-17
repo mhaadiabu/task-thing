@@ -39,15 +39,15 @@ function App() {
     { enabled: showTaskInput },
   );
 
-  if (!session || !isLoading) {
+  if (!session && !isLoading) {
     navigate({ to: '/auth/sign-in' });
   }
 
   if (!tasks) return 'No tasks yet';
 
-  const filteredTasks = tasks.filter(({ task }) => {
-    task.toLowerCase().includes(search.toLowerCase());
-  });
+  const filteredTasks = tasks.filter(({ task }) =>
+    task.toLowerCase().includes(search.toLowerCase())
+  );
 
 
   return (

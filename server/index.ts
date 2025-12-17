@@ -10,10 +10,7 @@ import { tasks } from './db/schema';
 
 const app = express();
 
-// Debug middleware to log request origins
-app.use('/api/auth', (req, res, next) => {
-	next();
-});
+// Debug middleware removed as it was not performing any logic
 
 // Define a simple tRPC router
 const appRouter = router({
@@ -82,3 +79,6 @@ app.get('/api/me', async (req, res) => {
 app.listen(8000, () => {});
 
 export type AppRouter = typeof appRouter;
+app.listen(8000, () => {
+	console.log('Server listening on port 8000');
+});

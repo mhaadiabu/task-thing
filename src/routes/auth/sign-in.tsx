@@ -12,17 +12,17 @@ export const Route = createFileRoute('/auth/sign-in')({
 
 function SignInPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [ formData, setFormData ] = useState({
     email: '',
     password: '',
   });
-  const [errorMessage, setErrorMessage] = useState<string | undefined>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [ errorMessage, setErrorMessage ] = useState<string | undefined>('');
+  const [ successMessage, setSuccessMessage ] = useState<string>('');
+  const [ isLoading, setIsLoading ] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((formValues) => ({ ...formValues, [name]: value }));
+    setFormData((formValues) => ({ ...formValues, [ name ]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,19 +58,19 @@ function SignInPage() {
         </p>
       </div>
 
-      {errorMessage && (
+      { errorMessage && (
         <div className='p-3 rounded-md bg-destructive/10 border border-destructive/20'>
-          <p className='text-sm text-destructive'>{errorMessage}</p>
+          <p className='text-sm text-destructive'>{ errorMessage }</p>
         </div>
-      )}
+      ) }
 
-      {successMessage && (
+      { successMessage && (
         <div className='p-3 rounded-md bg-green-100 border border-green-200'>
-          <p className='text-sm text-green-800'>{successMessage}</p>
+          <p className='text-sm text-green-800'>{ successMessage }</p>
         </div>
-      )}
+      ) }
 
-      <form onSubmit={handleSubmit} className='space-y-4'>
+      <form onSubmit={ handleSubmit } className='space-y-4'>
         <div className='space-y-2'>
           <Label htmlFor='email'>Email</Label>
           <Input
@@ -79,9 +79,9 @@ function SignInPage() {
             name='email'
             placeholder='you@example.com'
             required
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading}
+            value={ formData.email }
+            onChange={ handleChange }
+            disabled={ isLoading }
           />
         </div>
 
@@ -93,24 +93,24 @@ function SignInPage() {
             name='password'
             placeholder='••••••••'
             required
-            minLength={8}
-            value={formData.password}
-            onChange={handleChange}
-            disabled={isLoading}
+            minLength={ 8 }
+            value={ formData.password }
+            onChange={ handleChange }
+            disabled={ isLoading }
           />
           <p className='text-xs text-muted-foreground'>
             Must be at least 8 characters long
           </p>
         </div>
 
-        <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? 'Creating account...' : 'Sign In'}
+        <Button type='submit' className='w-full' disabled={ isLoading }>
+          { isLoading ? 'Signing in...' : 'Sign In' }
         </Button>
       </form>
 
       <div className='text-center text-sm'>
         <span className='text-muted-foreground'>
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{ ' ' }
         </span>
         <Link
           to='/auth/sign-up'
