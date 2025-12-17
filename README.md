@@ -1,4 +1,4 @@
-# Task Tracker
+# TaskThing
 
 A modern, full-stack task management application built with React, TypeScript, and PostgreSQL. Features a clean, dark-mode interface for creating, editing, and managing tasks with persistent storage.
 
