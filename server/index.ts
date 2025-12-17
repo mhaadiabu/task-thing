@@ -76,9 +76,8 @@ app.get('/api/me', async (req, res) => {
 });
 
 // Start server
-app.listen(8000, () => {});
-
-export type AppRouter = typeof appRouter;
 app.listen(8000, () => {
 	console.log('Server listening on port 8000');
 });
+
+export type AppRouter = typeof appRouter;

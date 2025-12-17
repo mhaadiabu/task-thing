@@ -6,7 +6,13 @@ import type { AppRouter } from '../../server';
 export const queryClient = new QueryClient();
 
 const trpcClient = createTRPCClient<AppRouter>({
-  links: [httpBatchLink({ url: 'http://localhost:5173/trpc' })],
+  links: [
+    httpBatchLink({
+      url: import.meta.env.VITE_API_URL
+        ? `${import.meta.env.VITE_API_URL}/trpc`
+        : 'http://localhost:5173/trpc',
+    }),
+  ],
 });
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({

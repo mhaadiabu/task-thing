@@ -4,7 +4,7 @@ import { db } from './server/db';
 import * as schema from './server/db/auth-schema';
 import 'dotenv/config';
 
-const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
+const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL ?? 'http://localhost:8000';
 
 export const auth = betterAuth({
   baseURL: BETTER_AUTH_URL,
