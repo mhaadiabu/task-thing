@@ -29,6 +29,13 @@
       "when": 1765859613658,
       "tag": "0003_broken_synch",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765942792526,
+      "tag": "0004_overconfident_photon",
+      "breakpoints": true
     }
   ]
 }
