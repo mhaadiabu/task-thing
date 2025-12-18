@@ -1,41 +1,60 @@
-import { Edit3, Trash2 } from "lucide-react";
-import { useTaskContext } from "@/context/TaskContext";
-import { ACTIONS, cn } from "@/lib/utils";
-import { Checkbox } from "./ui/checkbox";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
-import { ButtonGroup } from "./ui/button-group";
+import { useTaskContext } from '@/context/TaskContext';
+import { cn } from '@/lib/utils';
+import { queryClient, trpc } from '@/utils/trpc';
+import { useMutation } from '@tanstack/react-query';
+import { Edit3, Trash2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { ButtonGroup } from './ui/button-group';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
 
 interface TasksProps {
   id: string;
   task: string;
-  status: "pending" | "completed";
+  status: 'pending' | 'completed';
   className?: string;
 }
 
 const Tasks = ({ id, task, status, className }: TasksProps) => {
-  const { dispatch, setIsEditing } = useTaskContext();
+  const { setIsEditing } = useTaskContext();
+
+  const toggleStatus = useMutation(
+    trpc.updateTask.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.updateTask.mutationKey(),
+        });
+      },
+    }),
+  );
+  
+  const deleteTask = useMutation(
+    trpc.deleteTask.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.deleteTask.mutationKey(),
+        });
+      },
+    }),
+  );
 
   return (
-    <div className={cn("flex gap-2 justify-between items-center", className)}>
-      <div className="flex gap-2 items-center justify-start">
+    <div className={cn('flex gap-2 justify-between items-center', className)}>
+      <div className='flex gap-2 items-center justify-start'>
         <Checkbox
           id={`task-${id}`}
-          checked={status === "completed"}
+          checked={status === 'completed'}
           onCheckedChange={() =>
-            dispatch({
-              type: ACTIONS.UPDATE_TASK,
-              payload: { id: id },
-            })
+            toggleStatus.mutate({ id: id, status: status })
           }
         />
         <Label
           htmlFor={`task-${id}`}
           className={cn(
-            status === "completed"
-              ? "line-through text-muted-foreground"
-              : "no-underline",
-            "word-wrap",
+            status === 'completed'
+              ? 'line-through text-muted-foreground'
+              : 'no-underline',
+            'word-wrap',
           )}
         >
           {task}
@@ -43,17 +62,14 @@ const Tasks = ({ id, task, status, className }: TasksProps) => {
       </div>
 
       <ButtonGroup>
-        <Button size="icon" onClick={() => setIsEditing(id)}>
+        <Button size='icon' onClick={() => setIsEditing(id)}>
           <Edit3 />
         </Button>
         <Button
-          size="icon"
-          variant="destructive"
+          size='icon'
+          variant='destructive'
           onClick={() =>
-            dispatch({
-              type: ACTIONS.DELETE_TASK,
-              payload: { id: id },
-            })
+            deleteTask.mutate({id: id})
           }
         >
           <Trash2 />

@@ -1,10 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import reducer, { ACTIONS, type ActionTypes, type TaskTypes } from './reducer';
 
 const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
 
-export { cn, reducer, ACTIONS };
-export type { TaskTypes, ActionTypes };
+export { cn};
