@@ -1,18 +1,18 @@
 import { pgTable, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 
-export const statusEnum = pgEnum('status', ['pending', 'completed']);
+const statusEnum = pgEnum('status', ['pending', 'completed']);
 
 export const tasks = pgTable('tasks', {
-	id: text('id').primaryKey(),
-	task: text('task').notNull(),
-	status: statusEnum('status').notNull(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at')
-		.defaultNow()
-		.$onUpdate(() => /* @__PURE__ */ new Date())
-		.notNull()
+  id: text('id').primaryKey(),
+  task: text('task').notNull(),
+  status: statusEnum('status').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
