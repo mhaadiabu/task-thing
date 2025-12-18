@@ -25,12 +25,17 @@ export const Route = createFileRoute('/')({
  */
 function App() {
   const navigate = useNavigate();
-  const [ showTaskInput, setShowTaskInput ] = useState(false);
-  const [ search, setSearch ] = useState('');
   const { isEditing } = useTaskContext();
-  const { data: tasks } = useQuery(trpc.getTasks.queryOptions());
+  const { session, isLoading, user, isAuthenticated } = useAuth();
 
-  const { session, isLoading, user } = useAuth();
+  const [showTaskInput, setShowTaskInput] = useState(false);
+  const [search, setSearch] = useState('');
+
+  if ((!session && !isLoading) || !isAuthenticated) navigate({ to: '/auth/sign-in' });
+
+  const { data: tasks } = useQuery(
+    trpc.getTasks.queryOptions({ userId: user!.id }),
+  );
 
   // Alt + T to toggle create task input
   useKeyboardShortcut({ key: 't', alt: true }, () => {
@@ -46,61 +51,65 @@ function App() {
     { enabled: showTaskInput },
   );
 
-  if (!session && !isLoading) {
-    navigate({ to: '/auth/sign-in' });
-  }
-
-  if (!tasks) return 'No tasks yet';
-
-  const filteredTasks = tasks.filter(({ task }) =>
-    task.toLowerCase().includes(search.toLowerCase())
+  const filteredTasks = tasks?.filter(({ task }) =>
+    task.toLowerCase().includes(search.toLowerCase()),
   );
-
 
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
-      { isLoading ? (
-        <div>Loading...</div>
+      {isLoading ? (
+        <div className='w-full h-svh justify-center items-center'>
+          Loading...
+        </div>
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
           <SearchTask
-            value={ search }
-            onChange={ (e) => setSearch(e.target.value) }
-            onClear={ () => setSearch('') }
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
           />
 
-          <p>{ user?.name }</p>
+          <p>{user?.name}</p>
 
           <div className='flex flex-col gap-2.5 mt-4 w-full'>
-            { filteredTasks.map(({ task, id, status }) =>
-              isEditing === id ? (
-                <EditTask key={ id } id={ id } task={ task } />
-              ) : (
-                <Tasks
-                  key={ id }
-                  id={ id }
-                  task={ task }
-                  status={ status }
-                  className='not-last:border-b pb-2.5'
-                />
-              ),
-            ) }
+            {filteredTasks &&
+              filteredTasks.map((task) => {
+                return isEditing === task.id ? (
+                  <EditTask key={task.id} id={task.id} task={task.task} />
+                ) : filteredTasks.length > 0 && !showTaskInput ? (
+                  <div className='w-full h-svh flex justify-center items-center'>
+                    <Button
+                      onClick={() => setShowTaskInput(true)}
+                      className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
+                    >
+                      <Plus />
+                      <span className='max-md:hidden'>New Task</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <Tasks
+                    key={task.id}
+                    {...task}
+                    className='not-last:border-b pb-2.5'
+                  />
+                );
+              })}
           </div>
           <div>
-            { showTaskInput ? (
-              <CreateTask onCancel={ () => setShowTaskInput(false) } />
+            {showTaskInput ? (
+              <CreateTask cancel={() => setShowTaskInput(false)} />
             ) : (
               <Button
-                onClick={ () => setShowTaskInput((prev) => !prev) }
+                onClick={() => setShowTaskInput(true)}
                 className='fixed bottom-6 right-4 shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
               >
                 <Plus />
                 <span className='max-md:hidden'>New Task</span>
               </Button>
-            ) }
+            )}
           </div>
         </div>
-      ) }
+      )}
     </main>
   );
 }
