@@ -43,6 +43,13 @@
       "when": 1765947432131,
       "tag": "0005_nosy_sharon_ventura",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766091854022,
+      "tag": "0006_uneven_jackal",
+      "breakpoints": true
     }
   ]
 }
