@@ -32,27 +32,17 @@ const appRouter = router({
 
       return allTasks;
     }),
-  // .output(
-  //   z.object({
-  //     task: z.object({
-  //       id: z.string(),
-  //       task: z.string(),
-  //       status: z.literal(['pending', 'completed']),
-  //       createdAt: z.ZodISODateTime,
-  //       updatedAt: z.ZodISODateTime,
-  //     }),
-  //   }),
-  // ),
   createTask: publicProcedure
-    .input(
-      z.object({
-        task: z.string().nonempty(),
+      .input(
+        z.object({
+          userId: z.string(),
+          task: z.string(),
+        }),
+      )
+      .mutation(async (opts) => {
+        const { userId, task } = opts.input;
+        await db.insert(tasks).values({ userId, task, status: 'pending' });
       }),
-    )
-    .mutation(async (opts) => {
-      const { task } = opts.input;
-      await db.insert(tasks).values({ task: task });
-    }),
   editTask: publicProcedure
     .input(
       z.object({
@@ -62,7 +52,7 @@ const appRouter = router({
     )
     .mutation(async (opts) => {
       const { id, task } = opts.input;
-      await db.update(tasks).set({ task: task }).where(eq(tasks.id, id));
+      await db.update(tasks).set({ task }).where(eq(tasks.id, id));
     }),
   updateTask: publicProcedure
     .input(
