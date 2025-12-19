@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, pgEnum, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 
-const statusEnum = pgEnum('status', ['pending', 'completed']);
+export const statusEnum = pgEnum('status', ['pending', 'completed']);
 
 export const tasks = pgTable('tasks', {
   id: uuid('id').defaultRandom().primaryKey(),
