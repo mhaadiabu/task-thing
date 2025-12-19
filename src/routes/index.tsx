@@ -17,11 +17,11 @@ export const Route = createFileRoute('/')({
 });
 
 /**
- * Renders the main tasks application UI, handling task display, searching, creation/editing, and auth-based navigation.
+ * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
  *
- * Redirects unauthenticated users to "/auth/sign-in" when authentication is not loading, displays a loading indicator while data is loading, filters tasks by the search input, shows an edit form when a task is in edit mode, and provides keyboard shortcuts (Alt+T to toggle the create-task input, Escape to close it).
+ * Redirects unauthenticated users to "/auth/sign-in" when authentication is not loading, shows a loading indicator while auth/data load, filters displayed tasks by the search input, and provides keyboard shortcuts (Alt+T toggles the create-task input; Escape closes it).
  *
- * @returns The rendered application UI as JSX.Element
+ * @returns The root JSX element for the tasks application UI
  */
 function App() {
   const navigate = useNavigate();
