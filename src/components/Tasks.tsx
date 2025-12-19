@@ -27,7 +27,7 @@ const Tasks = ({ id, task, status, className }: TasksProps) => {
       },
     }),
   );
-  
+
   const deleteTask = useMutation(
     trpc.deleteTask.mutationOptions({
       onSettled: () => {
@@ -45,7 +45,7 @@ const Tasks = ({ id, task, status, className }: TasksProps) => {
           id={`task-${id}`}
           checked={status === 'completed'}
           onCheckedChange={() =>
-            toggleStatus.mutate({ id: id, status: status })
+            toggleStatus.mutate({ id, status })
           }
         />
         <Label
@@ -69,7 +69,7 @@ const Tasks = ({ id, task, status, className }: TasksProps) => {
           size='icon'
           variant='destructive'
           onClick={() =>
-            deleteTask.mutate({id: id})
+            deleteTask.mutate({id})
           }
         >
           <Trash2 />
