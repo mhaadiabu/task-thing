@@ -8,9 +8,10 @@ import { Input } from './ui/input';
 
 interface Props {
   cancel: () => void;
+  userId: string;
 }
 
-const CreateTask = ({ cancel }: Props) => {
+const CreateTask = ({ cancel, userId }: Props) => {
   const [taskItem, setTaskItem] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,7 +33,7 @@ const CreateTask = ({ cancel }: Props) => {
       return;
     }
 
-    newTask.mutate({ task: taskItem.trim() });
+    newTask.mutate({ userId, task: taskItem.trim() });
 
     setTaskItem('');
 
