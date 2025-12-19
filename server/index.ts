@@ -89,10 +89,12 @@ const trpcHandler = createHTTPHandler({
 });
 
 // Enable CORS for Better Auth routes (before mounting the handler)
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+
 app.use(
   '/api/auth',
   cors({
-    origin: 'http://localhost:5173',
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   }),
@@ -105,7 +107,7 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(
   '/trpc',
   cors({
-    origin: 'http://localhost:5173',
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
