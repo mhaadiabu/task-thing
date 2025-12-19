@@ -31,10 +31,11 @@ function App() {
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  if ((!session && !isLoading) || !isAuthenticated) navigate({ to: '/auth/sign-in' });
+  if (!isLoading && !isAuthenticated && !session)
+    navigate({ to: '/auth/sign-in' });
 
   const { data: tasks } = useQuery(
-    trpc.getTasks.queryOptions({ userId: user!.id }),
+    trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user }),
   );
 
   // Alt + T to toggle create task input
@@ -72,32 +73,39 @@ function App() {
           <p>{user?.name}</p>
 
           <div className='flex flex-col gap-2.5 mt-4 w-full'>
-            {filteredTasks &&
-              filteredTasks.map((task) => {
-                return isEditing === task.id ? (
+            {filteredTasks && filteredTasks.length > 0 ? (
+              filteredTasks.map((task) =>
+                isEditing === task.id ? (
                   <EditTask key={task.id} id={task.id} task={task.task} />
-                ) : filteredTasks.length > 0 && !showTaskInput ? (
-                  <div className='w-full h-svh flex justify-center items-center'>
-                    <Button
-                      onClick={() => setShowTaskInput(true)}
-                      className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
-                    >
-                      <Plus />
-                      <span className='max-md:hidden'>New Task</span>
-                    </Button>
-                  </div>
                 ) : (
                   <Tasks
                     key={task.id}
                     {...task}
                     className='not-last:border-b pb-2.5'
                   />
-                );
-              })}
+                ),
+              )
+            ) : (
+              <div className='w-full h-64 flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+                <p>{search ? 'No tasks match your search' : 'No tasks yet'}</p>
+                {!search && !showTaskInput && (
+                  <Button
+                    onClick={() => setShowTaskInput(true)}
+                    className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
+                  >
+                    <Plus />
+                    <span>Create your first task</span>
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
           <div>
             {showTaskInput ? (
-              <CreateTask cancel={() => setShowTaskInput(false)} />
+              <CreateTask
+                userId={user?.id || ''}
+                cancel={() => setShowTaskInput(false)}
+              />
             ) : (
               <Button
                 onClick={() => setShowTaskInput(true)}
