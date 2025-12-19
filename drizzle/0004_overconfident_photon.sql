@@ -1,0 +1,1 @@
+ALTER TABLE "tasks" ALTER COLUMN "status" SET DATA TYPE "public"."status";

@@ -1,66 +1,72 @@
-import { useTaskContext } from "@/context/TaskContext";
-import { ACTIONS } from "@/lib/utils";
-import { useState, useRef } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Plus, X } from "lucide-react";
-import { ButtonGroup } from "./ui/button-group";
+import { queryClient, trpc } from '@/utils/trpc';
+import { useMutation } from '@tanstack/react-query';
+import { Plus, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Button } from './ui/button';
+import { ButtonGroup } from './ui/button-group';
+import { Input } from './ui/input';
 
-interface CreateTaskProps {
-  onCancel: () => void;
+interface Props {
+  cancel: () => void;
 }
 
-const CreateTask = ({ onCancel }: CreateTaskProps) => {
-  const [taskItem, setTaskItem] = useState("");
-  const { dispatch } = useTaskContext();
+const CreateTask = ({ cancel }: Props) => {
+  const [taskItem, setTaskItem] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const newTask = useMutation(
+    trpc.createTask.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.createTask.mutationKey(),
+        });
+      },
+    }),
+  );
 
   const createTask = () => {
     if (taskItem.length < 1) {
       if (inputRef.current) {
-        inputRef.current.setAttribute("aria-invalid", "true");
+        inputRef.current.setAttribute('aria-invalid', 'true');
       }
       return;
     }
 
-    dispatch({
-      type: ACTIONS.CREATE_TASK,
-      payload: { task: taskItem.trim() },
-    });
+    newTask.mutate({ task: taskItem.trim() });
 
-    setTaskItem("");
+    setTaskItem('');
 
-    onCancel();
+    cancel();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTaskItem(e.target.value);
     if (e.target.value.length > 0 && inputRef.current) {
-      inputRef.current.setAttribute("aria-invalid", "false");
+      inputRef.current.setAttribute('aria-invalid', 'false');
     }
   };
 
   return (
-    <div className="flex flex-col w-full mx-auto py-2 gap-2.5 items-end">
+    <div className='flex flex-col w-full mx-auto py-2 gap-2.5 items-end'>
       <Input
         ref={inputRef}
-        type="text"
-        name="task"
+        type='text'
+        name='task'
         value={taskItem}
-        placeholder="Add a new task..."
+        placeholder='Add a new task...'
         onChange={handleChange}
-        onKeyDown={(e) => e.key === "Enter" && createTask()}
-        aria-invalid="false"
+        onKeyDown={(e) => e.key === 'Enter' && createTask()}
+        aria-invalid='false'
         autoFocus
       />
       <ButtonGroup>
-        <Button variant="destructive" onClick={onCancel}>
+        <Button variant='destructive' onClick={cancel}>
           <X />
-          <span className="max-md:hidden">Cancel</span>
+          <span className='max-md:hidden'>Cancel</span>
         </Button>
 
         <Button onClick={createTask}>
-          <span className="max-md:hidden">Click to Add</span>
+          <span className='max-md:hidden'>Click to Add</span>
           <Plus />
         </Button>
       </ButtonGroup>

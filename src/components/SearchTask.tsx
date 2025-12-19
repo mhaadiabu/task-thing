@@ -1,6 +1,5 @@
 import { Search, X } from 'lucide-react';
 import { Button } from './ui/button';
-import { Activity } from 'react';
 import { useRef } from 'react';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import {
