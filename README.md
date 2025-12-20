@@ -1,203 +1,162 @@
-# TaskThing
+# Task Tracker
 
-A modern, full-stack task management application built with React, TypeScript, and PostgreSQL. Features a clean, dark-mode interface for creating, editing, and managing tasks with persistent storage and user authentication.
-
-## Features
-
-- ✅ Create, edit, and delete tasks
-- ✅ Mark tasks as complete/incomplete
-- ✅ Search/filter tasks in real-time
-- ✅ Dark mode UI with Tailwind CSS
-- ✅ PostgreSQL database with Drizzle ORM
-- ✅ Email/password authentication with Better Auth
-- ✅ Type-safe API with tRPC
-- ✅ Keyboard shortcuts (Alt+T to create task, Escape to cancel)
-- ✅ Responsive design
-- ✅ React Compiler enabled for optimized performance
+A full-stack task management application built with React, Express, tRPC, and PostgreSQL. Features user authentication, real-time task management, and a modern dark-themed UI.
 
 ## Tech Stack
 
 ### Frontend
-- **React** - UI library with React Compiler
-- **TypeScript** - Type safety
-- **Vite (Rolldown)** - Next-gen build tool using Rolldown
-- **Tailwind CSS** - Styling
-- **Radix UI/Shadcn** - Accessible UI components
-- **Lucide React** - Icons
-- **TanStack Router** - Type-safe file-based routing
-- **TanStack Query** - Server state management
+
+- React 19
+- TanStack Router - File-based routing
+- TanStack Query - Server state management
+- tRPC Client - Type-safe API calls
+- Tailwind CSS 4 - Styling
+- Radix UI - Accessible component primitives
+- Lucide React - Icons
 
 ### Backend
-- **Node.js + Express** - Server runtime
-- **tRPC** - End-to-end typesafe APIs
-- **PostgreSQL** - Database
-- **Drizzle ORM** - Type-safe database toolkit
-- **Better Auth** - Authentication library
-- **Zod** - Schema validation
+
+- Express 5 - HTTP server
+- tRPC - Type-safe API layer
+- Better Auth - Authentication system
+- Drizzle ORM - Database toolkit
+- PostgreSQL - Database
+
+### Development
+
+- TypeScript
+- Vite (via Rolldown)
+- pnpm - Package manager
+- Drizzle Kit - Database migrations
+
+## Features
+
+- User authentication (sign up, sign in, sign out)
+- Create, read, update, and delete tasks
+- Mark tasks as pending or completed
+- Search/filter tasks
+- Keyboard shortcuts (Alt+T to create task, Escape to cancel)
+- Responsive design with dark mode
 
 ## Prerequisites
 
 - Node.js 18+
+- pnpm 10+
 - PostgreSQL database
-- pnpm (recommended)
 
-## Getting Started
+## Environment Variables
 
-### 1. Clone the repository
+Create a `.env` file in the root directory with the following variables:
+
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/task_tracker
+BETTER_AUTH_URL=http://localhost:8000
+ALLOWED_ORIGINS=http://localhost:5173
+PORT=8000
+```
+
+## Installation
+
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/mhaadiabu/task-tracker.git
 cd task-tracker
 ```
 
-### 2. Install dependencies
+2. Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-### 3. Set up environment variables
-
-Create a `.env` file in the root directory:
-
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/task_tracker"
-BETTER_AUTH_URL="http://localhost:8000"
-BETTER_AUTH_SECRET="your-super-secret-key-at-least-32-characters-long"
-```
-
-Replace with your PostgreSQL connection string and generate a secure secret.
-
-### 4. Run database migrations
-
-This command pushes your Drizzle schema changes to the database.
+3. Set up the database:
 
 ```bash
 pnpm db:push
 ```
 
-### 5. Start the development server
+## Database Commands
 
-This command starts both the Vite frontend and Node.js backend concurrently.
+- `pnpm db:generate` - Generate migration files from schema changes
+- `pnpm db:push` - Push schema changes directly to the database
+- `pnpm db:studio` - Open Drizzle Studio to browse/edit data
+
+## Development
+
+Start the development server (runs both client and server concurrently):
 
 ```bash
 pnpm dev
 ```
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8000`
+This will start:
+- Frontend dev server at `http://localhost:5173`
+- Backend server at `http://localhost:8000`
 
-The backend API endpoints (`/api/auth` and `/trpc`) are automatically proxied from the Vite dev server to the Node.js server.
+To run them separately:
+
+```bash
+pnpm dev:client  # Start Vite dev server
+pnpm dev:server  # Start Express server with hot reload
+```
+
+## Production
+
+Build the application:
+
+```bash
+pnpm build
+```
+
+Start the production server:
+
+```bash
+pnpm start
+```
 
 ## Project Structure
 
 ```
 task-tracker/
-├── server/                  # Backend server
-│   ├── db/                  # Database layer
-│   │   ├── index.ts         # Database connection
-│   │   ├── schema.ts        # Schema exports
-│   │   ├── auth-schema.ts   # Better Auth tables
-│   │   └── task-schema.ts   # Tasks table definition
-│   ├── index.ts             # Express server + tRPC router
-│   └── trpc.ts              # tRPC initialization
-├── src/                     # Frontend application
-│   ├── components/          # React components
-│   │   ├── ui/              # Shadcn UI components
-│   │   ├── CreateTask.tsx   # New task form
-│   │   ├── EditTask.tsx     # Edit task form
-│   │   ├── SearchTask.tsx   # Search input
-│   │   ├── TaskProvider.tsx # Task context provider
-│   │   └── Tasks.tsx        # Task list item
-│   ├── context/             # React Context (TaskContext)
-│   ├── hooks/               # Custom hooks (useKeyboardShortcut)
-│   ├── lib/                 # Utilities and auth client
-│   │   ├── auth-client.ts   # Better Auth React client
-│   │   └── utils/           # Helper functions
-│   ├── routes/              # TanStack Router file-based routes
-│   │   ├── __root.tsx       # Root layout
-│   │   ├── index.tsx        # Home page (task list)
-│   │   ├── auth.tsx         # Auth layout
-│   │   └── auth/            # Auth pages
-│   │       ├── sign-in.tsx  # Sign in page
-│   │       └── sign-up.tsx  # Sign up page
-│   └── utils/               # tRPC client setup
-├── drizzle/                 # Database migrations
-├── auth.ts                  # Better Auth server configuration
-├── drizzle.config.ts        # Drizzle ORM configuration
-├── vite.config.ts           # Vite configuration with proxies
-└── package.json             # Dependencies and scripts
+├── drizzle/              # Database migrations
+├── public/               # Static assets
+├── server/
+│   ├── db/
+│   │   ├── auth-schema.ts   # Authentication tables
+│   │   ├── task-schema.ts   # Task table definition
+│   │   ├── schema.ts        # Combined schema exports
+│   │   └── index.ts         # Database connection
+│   ├── index.ts          # Express server entry point
+│   └── trpc.ts           # tRPC configuration
+├── src/
+│   ├── assets/           # Frontend assets
+│   ├── components/       # React components
+│   ├── context/          # React context providers
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utilities and auth client
+│   ├── routes/           # TanStack Router pages
+│   └── utils/            # Helper functions and tRPC client
+├── auth.ts               # Better Auth configuration
+├── drizzle.config.ts     # Drizzle Kit configuration
+└── vite.config.ts        # Vite configuration
 ```
-
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Starts both client and server in watch mode |
-| `pnpm dev:client` | Starts the Vite frontend server only |
-| `pnpm dev:server` | Starts the Node.js backend server only (with tsx watch) |
-| `pnpm build` | Builds the frontend for production |
-| `pnpm preview` | Previews the production build |
-| `pnpm lint` | Runs ESLint |
-| `pnpm db:generate` | Generates a new SQL migration file from your schema |
-| `pnpm db:push` | Pushes schema changes directly to the database |
-| `pnpm db:studio` | Opens Drizzle Studio to browse your data |
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Alt + T` | Toggle create task input |
-| `Escape` | Close create task input |
-| `Enter` | Submit new task (when input is focused) |
 
 ## API Endpoints
 
-### tRPC Procedures (`/trpc`)
+### tRPC Procedures (mounted at `/trpc`)
 
-- `getTasks` - Fetch all tasks for a user
+- `getTasks` - Query tasks for a user
 - `createTask` - Create a new task
-- `editTask` - Update task text
-- `updateTask` - Toggle task status (pending/completed)
-- `deleteTask` - Delete a task
-
-### Auth Endpoints (`/api/auth`)
-
-Handled by Better Auth - supports email/password authentication with session management.
+- `editTask` - Update task content
+- `updateTask` - Toggle task status
+- `deleteTask` - Remove a task
 
 ### REST Endpoints
 
 - `GET /api/me` - Get current authenticated user
-
-## Authentication
-
-This project uses Better Auth for user authentication:
-
-- Email/password sign up and sign in
-- Session-based authentication with secure cookies
-- Protected routes redirect to sign-in page
-- Auth state managed via React hooks (`useAuth`)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- `/api/auth/*` - Better Auth endpoints (sign in, sign up, etc.)
 
 ## License
 
 MIT
-
-## Acknowledgments
-
-- [Vite](https://vite.dev/) - Next generation frontend tooling
-- [Rolldown](https://rolldown.rs/) - Fast Rust-based bundler
-- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
-- [Better Auth](https://www.better-auth.com/) - Authentication library
-- [tRPC](https://trpc.io/) - End-to-end typesafe APIs
-- [TanStack](https://tanstack.com/) - Router and Query libraries
-- [Radix UI](https://www.radix-ui.com/) - Unstyled, accessible components
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [Shadcn/ui](https://ui.shadcn.com/) - Reusable, customizable component library
