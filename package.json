@@ -8,6 +8,7 @@
     "dev:client": "vite",
     "dev:server": "tsx --watch server/index.ts",
     "build": "tsc -b && vite build",
+    "build:once": "concurrently \"pnpm build\" \"pnpm start\"",
     "start": "node --import tsx server/index.ts",
     "lint": "eslint .",
     "preview": "vite preview",
