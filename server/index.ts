@@ -12,6 +12,16 @@ import { publicProcedure, router } from './trpc';
 
 const app = express();
 
+// Get allowed origins from environment
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:5173'];
+
+// Global CORS middleware
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
+
 // Define a simple tRPC router
 const appRouter = router({
   getTasks: publicProcedure
@@ -26,7 +36,6 @@ const appRouter = router({
       const allTasks = await db
         .select()
         .from(tasks)
-        // .crossJoin(user, eq(tasks.userId, user.id))
         .where(eq(tasks.userId, userId))
         .orderBy(desc(tasks.createdAt));
 
@@ -88,29 +97,12 @@ const trpcHandler = createHTTPHandler({
   },
 });
 
-// Enable CORS for Better Auth routes (before mounting the handler)
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:5173'];
 
-app.use(
-  '/api/auth',
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  }),
-);
 
 // Mount Better Auth handler - using Express v5 syntax
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
-// Enable CORS for tRPC routes
-app.use(
-  '/trpc',
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  }),
-);
+
 
 // Enable express.json() for other routes (after Better Auth handler)
 app.use(express.json());
@@ -139,8 +131,9 @@ app.get('/api/me', async (req, res) => {
 });
 
 // Start server
-app.listen(8000, () => {
-  console.log('Server listening on port 8000');
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
 
 export type AppRouter = typeof appRouter;
