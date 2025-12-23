@@ -52,7 +52,10 @@ function SignInPage() {
         onSuccess: async () => {
           setSuccessMessage('Signed in successfully!');
           // Fetch session to ensure cookies are recognized before navigating
-          await authClient.getSession();
+          const sessionResult = await authClient.getSession();
+          console.log('Session after sign-in:', sessionResult);
+          console.log('Session data:', sessionResult.data);
+          console.log('Session error:', sessionResult.error);
           setIsLoading(false);
           navigate({ to: '/' });
         },

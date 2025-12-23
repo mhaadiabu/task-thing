@@ -14,10 +14,14 @@ import { useState } from 'react';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
+    console.log('beforeLoad: checking session...');
     const session = await getSession();
+    console.log('beforeLoad: session result:', session);
     if (!session?.user) {
+      console.log('beforeLoad: no user found, redirecting to sign-in');
       throw redirect({ to: '/auth/sign-in' });
     }
+    console.log('beforeLoad: user found:', session.user);
     return { user: session.user };
   },
   component: App,
