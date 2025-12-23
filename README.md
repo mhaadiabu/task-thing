@@ -1,6 +1,6 @@
 # Task Tracker
 
-A full-stack task management application built with React, Express, tRPC, and PostgreSQL. Features user authentication, real-time task management, and a modern dark-themed UI.
+Over-engineered. Overly complex. A full-stack todo app intentionally built as the most convoluted implementation imaginable. Uses React, Express, tRPC, and PostgreSQL.
 
 ## Tech Stack
 
