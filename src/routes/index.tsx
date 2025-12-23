@@ -64,41 +64,48 @@ function App() {
         </div>
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
-        <SearchTask
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch('')}
-        />
+          <SearchTask
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+          />
 
-        <p>{user?.name}</p>
+          <p>{user?.name}</p>
 
-        <div className='flex flex-col gap-2.5 mt-4 w-full'>
-          {filteredTasks && filteredTasks.length > 0 ? (
-            filteredTasks.map((task) =>
-              isEditing === task.id ? (
-                <EditTask key={task.id} id={task.id} task={task.task} />
-              ) : (
-                <Tasks
-                  key={task.id}
-                  {...task}
-                  className='not-last:border-b pb-2.5'
-                />
-              ),
-            )
-          ) : (
-            <div className='w-full h-64 flex flex-col justify-center items-center gap-4 text-muted-foreground'>
-              <p>{search ? 'No tasks match your search' : 'No tasks yet'}</p>
-              {!search && !showTaskInput && (
-                <Button
-                  onClick={() => setShowTaskInput(true)}
-                  className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
-                >
-                  <Plus />
-                  <span>Create your first task</span>
-                </Button>
-              )}
-            </div>
-          )}
+          <div className='flex flex-col gap-2.5 mt-4 w-full'>
+            {filteredTasks && filteredTasks.length > 0 ? (
+              filteredTasks.map((task) =>
+                isEditing === task.id ? (
+                  <EditTask key={task.id} id={task.id} task={task.task} />
+                ) : (
+                  <Tasks
+                    key={task.id}
+                    {...task}
+                    className='not-last:border-b pb-2.5'
+                  />
+                ),
+              )
+            ) : (
+              <div className='w-full h-64 flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+                <p>{search ? 'No tasks match your search' : 'No tasks yet'}</p>
+                {!search && !showTaskInput && (
+                  <Button
+                    onClick={() => setShowTaskInput(true)}
+                    className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
+                  >
+                    <Plus />
+                    <span>Create your first task</span>
+                  </Button>
+                )}
+              </div>
+            )}
+            {showTaskInput && (
+              <CreateTask
+                cancel={() => setShowTaskInput(false)}
+                userId={user?.id}
+              />
+            )}
+          </div>
         </div>
       )}
     </main>
