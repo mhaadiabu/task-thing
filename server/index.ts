@@ -13,14 +13,19 @@ import { publicProcedure, router } from './trpc';
 const app = express();
 
 // Get allowed origins from environment
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:5173'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? [
+  'http://localhost:5173',
+];
 
 // Global CORS middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  }),
+);
 
 // Define a simple tRPC router
 const appRouter = router({
@@ -42,16 +47,16 @@ const appRouter = router({
       return allTasks;
     }),
   createTask: publicProcedure
-      .input(
-        z.object({
-          userId: z.string(),
-          task: z.string(),
-        }),
-      )
-      .mutation(async (opts) => {
-        const { userId, task } = opts.input;
-        await db.insert(tasks).values({ userId, task, status: 'pending' });
+    .input(
+      z.object({
+        userId: z.string(),
+        task: z.string(),
       }),
+    )
+    .mutation(async (opts) => {
+      const { userId, task } = opts.input;
+      await db.insert(tasks).values({ userId, task, status: 'pending' });
+    }),
   editTask: publicProcedure
     .input(
       z.object({
@@ -97,12 +102,8 @@ const trpcHandler = createHTTPHandler({
   },
 });
 
-
-
 // Mount Better Auth handler - using Express v5 syntax
 app.all('/api/auth/{*any}', toNodeHandler(auth));
-
-
 
 // Enable express.json() for other routes (after Better Auth handler)
 app.use(express.json());
