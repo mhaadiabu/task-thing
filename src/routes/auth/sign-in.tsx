@@ -50,12 +50,29 @@ function SignInPage() {
           setIsLoading(false);
         },
         onSuccess: async () => {
+          console.log('=== SIGN-IN SUCCESS ===');
+          console.log('Sign-in completed, attempting to fetch session...');
+          console.log('Auth client baseURL:', import.meta.env.VITE_API_URL);
+          console.log('Is DEV mode:', import.meta.env.DEV);
+
           setSuccessMessage('Signed in successfully!');
+
+          // Check cookies after sign-in
+          console.log('Document cookies:', document.cookie);
+
           // Fetch session to ensure cookies are recognized before navigating
           const sessionResult = await authClient.getSession();
-          console.log('Session after sign-in:', sessionResult);
+          console.log('Session result:', sessionResult);
           console.log('Session data:', sessionResult.data);
           console.log('Session error:', sessionResult.error);
+
+          if (!sessionResult.data) {
+            console.error('WARNING: Session is null after successful sign-in!');
+            console.log(
+              'This likely indicates a cookie issue (cross-origin, SameSite, etc.)',
+            );
+          }
+
           setIsLoading(false);
           navigate({ to: '/' });
         },

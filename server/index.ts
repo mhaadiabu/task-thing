@@ -103,7 +103,22 @@ const trpcHandler = createHTTPHandler({
 });
 
 // Mount Better Auth handler - using Express v5 syntax
-app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.all('/api/auth/{*any}', (req, res, next) => {
+  console.log(`[Auth] ${req.method} ${req.url}`);
+  console.log('[Auth] Origin:', req.headers.origin);
+  console.log('[Auth] Cookies:', req.headers.cookie);
+
+  // Capture the original setHeader to log Set-Cookie
+  const originalSetHeader = res.setHeader.bind(res);
+  res.setHeader = (name: string, value: string | string[]) => {
+    if (name.toLowerCase() === 'set-cookie') {
+      console.log('[Auth] Setting cookie:', value);
+    }
+    return originalSetHeader(name, value);
+  };
+
+  return toNodeHandler(auth)(req, res);
+});
 
 // Enable express.json() for other routes (after Better Auth handler)
 app.use(express.json());
