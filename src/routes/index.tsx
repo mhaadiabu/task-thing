@@ -102,7 +102,7 @@ function App() {
             {showTaskInput && (
               <CreateTask
                 cancel={() => setShowTaskInput(false)}
-                userId={user?.id}
+                userId={user?.id || ''}
               />
             )}
           </div>
