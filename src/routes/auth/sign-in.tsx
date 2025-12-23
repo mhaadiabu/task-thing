@@ -11,11 +11,7 @@ export const Route = createFileRoute('/auth/sign-in')({
 });
 
 /**
- * Render the sign-in page containing an email/password form and client-side authentication flow.
- *
- * Renders input fields for email and password, manages local form and UI state (error and success messages, loading),
- * submits credentials via the authentication client, displays feedback on error or success, disables inputs while
- * a request is in progress, and navigates to the root path after successful sign-in.
+ * Render the sign-in page with an email/password form, manage local form and UI state, perform sign-in and session verification, and redirect to the root path on success.
  *
  * @returns The JSX element for the sign-in page.
  */
