@@ -7,6 +7,15 @@ export const authClient = createAuthClient({
   },
 });
 
+// Helper function to get session for route-level auth checks
+export const getSession = async () => {
+  const { data, error } = await authClient.getSession();
+  if (error || !data) {
+    return null;
+  }
+  return data;
+};
+
 // Helper function to check if user is authenticated
 export const useAuth = () => {
   const session = authClient.useSession();

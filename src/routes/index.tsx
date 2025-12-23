@@ -5,37 +5,41 @@ import Tasks from '@/components/Tasks';
 import { Button } from '@/components/ui/button';
 import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { useAuth } from '@/lib/auth-client';
+import { getSession } from '@/lib/auth-client';
 import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/')({
+  beforeLoad: async () => {
+    const session = await getSession();
+    if (!session?.user) {
+      throw redirect({ to: '/auth/sign-in' });
+    }
+    return { user: session.user };
+  },
   component: App,
 });
 
 /**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
  *
- * Redirects unauthenticated users to "/auth/sign-in" when authentication is not loading, shows a loading indicator while auth/data load, filters displayed tasks by the search input, and provides keyboard shortcuts (Alt+T toggles the create-task input; Escape closes it).
+ * Uses route-level authentication via beforeLoad to ensure only authenticated users can access this page.
+ * Filters displayed tasks by the search input, and provides keyboard shortcuts (Alt+T toggles the create-task input; Escape closes it).
  *
  * @returns The root JSX element for the tasks application UI
  */
 function App() {
-  const navigate = useNavigate();
+  const { user } = Route.useRouteContext();
   const { isEditing } = useTaskContext();
-  const { session, isLoading, user, isAuthenticated } = useAuth();
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  if (!isLoading && !isAuthenticated && !session)
-    navigate({ to: '/auth/sign-in' });
-
-  const { data: tasks } = useQuery(
-    trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user }),
+  const { data: tasks, isLoading } = useQuery(
+    trpc.getTasks.queryOptions({ userId: user.id }, { enabled: !!user }),
   );
 
   // Alt + T to toggle create task input
@@ -59,7 +63,7 @@ function App() {
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
       {isLoading ? (
-        <div className='w-full h-svh justify-center items-center'>
+        <div className='w-full h-svh flex justify-center items-center'>
           Loading...
         </div>
       ) : (
@@ -70,7 +74,7 @@ function App() {
             onClear={() => setSearch('')}
           />
 
-          <p>{user?.name}</p>
+          <p>{user.name}</p>
 
           <div className='flex flex-col gap-2.5 mt-4 w-full'>
             {filteredTasks && filteredTasks.length > 0 ? (
@@ -102,7 +106,7 @@ function App() {
             {showTaskInput && (
               <CreateTask
                 cancel={() => setShowTaskInput(false)}
-                userId={user?.id || ''}
+                userId={user.id}
               />
             )}
           </div>
