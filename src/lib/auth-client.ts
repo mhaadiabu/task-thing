@@ -1,7 +1,11 @@
 import { createAuthClient } from 'better-auth/react';
 
+// In development, use relative URLs to leverage Vite's proxy (same-origin requests)
+// In production, use the API URL directly
+const baseURL = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL;
+
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_API_URL, // Point to backend server where Better Auth is running
+  baseURL,
   fetchOptions: {
     credentials: 'include', // Required for cross-origin cookie requests
   },
