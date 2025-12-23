@@ -2,6 +2,9 @@ import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
   baseURL: import.meta.env.VITE_API_URL, // Point to backend server where Better Auth is running
+  fetchOptions: {
+    credentials: 'include', // Required for cross-origin cookie requests
+  },
 });
 
 // Helper function to check if user is authenticated
