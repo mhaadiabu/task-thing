@@ -2,7 +2,7 @@ import { createHTTPHandler } from '@trpc/server/adapters/standalone';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import cors from 'cors';
 import { desc, eq } from 'drizzle-orm';
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
 import * as z from 'zod';
 import { auth } from '../auth';
 import { tryCatch } from '../src/lib/utils/try-catch';
@@ -12,85 +12,111 @@ import { publicProcedure, router } from './trpc';
 
 const app = express();
 
-// Get allowed origins from environment
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? [
-  'http://localhost:5173',
-];
+// Validate required envs early
+const REQUIRED_ENVS = ['DATABASE_URL', 'BETTER_AUTH_URL', 'ALLOWED_ORIGINS'];
+for (const key of REQUIRED_ENVS) {
+  if (!process.env[key]) {
+    console.warn(`[Config Warning] Missing env: ${key}`);
+  }
+}
 
-// Global CORS middleware
+// Get allowed origins from environment (comma-separated)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .filter(Boolean);
+
+// Global CORS middleware configured for credentials
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) {
+      // Allow same-origin (no origin header) and configured origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }),
 );
 
-// Define a simple tRPC router
+// Define tRPC router with error-handled DB operations
 const appRouter = router({
   getTasks: publicProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      }),
-    )
+    .input(z.object({ userId: z.string().min(1, 'userId required') }))
     .query(async (opts) => {
       const { userId } = opts.input;
-
-      const allTasks = await db
-        .select()
-        .from(tasks)
-        .where(eq(tasks.userId, userId))
-        .orderBy(desc(tasks.createdAt));
-
-      return allTasks;
+      const { data, error } = await tryCatch(
+        db
+          .select()
+          .from(tasks)
+          .where(eq(tasks.userId, userId))
+          .orderBy(desc(tasks.createdAt)),
+      );
+      if (error) {
+        console.error('getTasks error:', error);
+        throw new Error('Failed to fetch tasks');
+      }
+      return data;
     }),
   createTask: publicProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-        task: z.string(),
-      }),
-    )
+    .input(z.object({ userId: z.string().min(1), task: z.string().min(1) }))
     .mutation(async (opts) => {
       const { userId, task } = opts.input;
-      await db.insert(tasks).values({ userId, task, status: 'pending' });
+      const { error } = await tryCatch(
+        db.insert(tasks).values({ userId, task, status: 'pending' }),
+      );
+      if (error) {
+        console.error('createTask error:', error);
+        throw new Error('Failed to create task');
+      }
     }),
   editTask: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        task: z.string(),
-      }),
-    )
+    .input(z.object({ id: z.string().min(1), task: z.string().min(1) }))
     .mutation(async (opts) => {
       const { id, task } = opts.input;
-      await db.update(tasks).set({ task }).where(eq(tasks.id, id));
+      const { error } = await tryCatch(
+        db.update(tasks).set({ task }).where(eq(tasks.id, id)),
+      );
+      if (error) {
+        console.error('editTask error:', error);
+        throw new Error('Failed to edit task');
+      }
     }),
   updateTask: publicProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
         status: z.literal(['pending', 'completed']),
       }),
     )
     .mutation(async (opts) => {
       const { id, status } = opts.input;
-      await db
-        .update(tasks)
-        .set({ status: status === 'pending' ? 'completed' : 'pending' })
-        .where(eq(tasks.id, id));
+      const nextStatus = status === 'pending' ? 'completed' : 'pending';
+      const { error } = await tryCatch(
+        db.update(tasks).set({ status: nextStatus }).where(eq(tasks.id, id)),
+      );
+      if (error) {
+        console.error('updateTask error:', error);
+        throw new Error('Failed to update task');
+      }
     }),
   deleteTask: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
+    .input(z.object({ id: z.string().min(1) }))
     .mutation(async (opts) => {
       const { id } = opts.input;
-      await db.delete(tasks).where(eq(tasks.id, id));
+      const { error } = await tryCatch(
+        db.delete(tasks).where(eq(tasks.id, id)),
+      );
+      if (error) {
+        console.error('deleteTask error:', error);
+        throw new Error('Failed to delete task');
+      }
     }),
 });
 
@@ -102,16 +128,16 @@ const trpcHandler = createHTTPHandler({
   },
 });
 
-// Mount Better Auth handler - using Express v5 syntax
+// Better Auth handler (Express v5 style path)
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
-// Enable express.json() for other routes (after Better Auth handler)
+// Parse JSON for other routes
 app.use(express.json());
 
-// Mount tRPC handler
+// tRPC
 app.use('/trpc', trpcHandler);
 
-// Example route showing how to get session in Express routes
+// Example session route
 app.get('/api/me', async (req, res) => {
   const { data: session, error } = await tryCatch(
     auth.api.getSession({
@@ -121,17 +147,24 @@ app.get('/api/me', async (req, res) => {
 
   if (error) {
     console.error('Error getting session:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  } else {
-    if (!session) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    res.json({ user: session.user });
+    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  if (!session) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  res.json({ user: session.user });
 });
 
-// Start server
+// Centralized error handler (after routes)
+const errorHandler: ErrorRequestHandler = (err, _req, res) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Unhandled server error' });
+};
+
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
