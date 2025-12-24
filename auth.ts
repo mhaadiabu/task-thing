@@ -9,18 +9,23 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') ?? [
   'http://localhost:5173',
 ];
 
+// Determine if we're in production (HTTPS) or development (HTTP)
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
   baseURL: BETTER_AUTH_URL,
   allowedOrigins: [...ALLOWED_ORIGINS, BETTER_AUTH_URL].filter(Boolean),
   trustedOrigins: ALLOWED_ORIGINS,
   advanced: {
     crossSubDomainCookies: {
-      enabled: true,
+      enabled: isProduction, // Only enable for production with proper domain setup
     },
-    useSecureCookies: true,
+    useSecureCookies: isProduction, // Only use secure cookies in production (HTTPS)
     defaultCookieAttributes: {
-      sameSite: 'none' as const,
-      secure: true,
+      sameSite: isProduction ? ('none' as const) : ('lax' as const), // 'lax' works on localhost, 'none' requires secure
+      secure: isProduction, // secure: true only works over HTTPS
+      httpOnly: true,
+      path: '/',
     },
   },
   database: drizzleAdapter(db, {
