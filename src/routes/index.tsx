@@ -10,7 +10,7 @@ import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -31,8 +31,12 @@ function App() {
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  if (!isLoading && !isAuthenticated && !session)
-    navigate({ to: '/auth/sign-in' });
+  // Use useEffect for navigation to avoid calling navigate during render
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !session) {
+      navigate({ to: '/auth/sign-in' });
+    }
+  }, [isLoading, isAuthenticated, session, navigate]);
 
   const { data: tasks } = useQuery(
     trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user }),
