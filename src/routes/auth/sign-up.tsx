@@ -13,7 +13,7 @@ export const Route = createFileRoute('/auth/sign-up')({
 /**
  * Render the sign-up page and handle user registration.
  *
- * Renders a form that collects name, email, and password, submits the data to the authentication client, displays error or success banners, disables inputs while submitting, and navigates to the home page two seconds after a successful signup.
+ * Renders a form that collects name, email, and password, submits the data to the authentication client, displays error or success banners, disables inputs while submitting, and navigates to the home page after a successful signup.
  *
  * @returns The sign-up page React element
  */
@@ -38,23 +38,29 @@ function SignUpPage() {
     setIsLoading(true);
     setErrorMessage('');
 
-    await authClient.signUp.email(
-      {
-        ...formData,
-        callbackURL: '/',
-      },
-      {
-        onError: (error) => {
-          setErrorMessage(error.error.message);
-          setIsLoading(false);
-        },
-        onSuccess: () => {
-          setIsLoading(false);
-          setSuccessMessage('Account created successfully! Please sign in.');
-          setTimeout(() => navigate({ to: '/' }), 2000);
-        },
-      },
-    );
+    const { data, error } = await authClient.signUp.email({
+      ...formData,
+      callbackURL: '/',
+    });
+
+    if (error) {
+      setErrorMessage(error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    if (data) {
+      setSuccessMessage('Account created successfully!');
+      // Use a small delay to ensure cookies are properly set before navigation
+      // Then refetch session to confirm authentication
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Force a session refresh to ensure the client picks up the new cookies
+      await authClient.getSession({ fetchOptions: { cache: 'no-store' } });
+
+      setIsLoading(false);
+      navigate({ to: '/' });
+    }
   };
 
   return (
