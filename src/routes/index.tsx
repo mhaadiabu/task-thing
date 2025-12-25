@@ -13,9 +13,17 @@ import {
   useNavigate,
   useRouterState,
 } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { Spinner } from '@/components/ui/spinner';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -31,17 +39,14 @@ export const Route = createFileRoute('/')({
 function App() {
   const navigate = useNavigate();
   const { isEditing } = useTaskContext();
-  // const { session, isLoading, user } = useAuth();
-
-  // Use Better Auth's built-in useSession hook for reactive session state
   const { data: session, isPending: isSessionLoading } =
     authClient.useSession();
+
   const isFetching = useRouterState({ select: (s) => s.isLoading });
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Redirect to sign-in if not authenticated
   if (!isFetching && !isSessionLoading && !session?.user) {
     navigate({ to: '/auth/sign-in' });
   }
@@ -76,7 +81,7 @@ function App() {
         <Spinner />
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
-          <div className='flex w-full items-center'>
+          <div className='flex w-full items-center gap-2'>
             <SearchTask
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -85,10 +90,12 @@ function App() {
 
             <Button
               variant='destructive'
+              size='icon'
               onClick={async () => await authClient.signOut()}
-              className='max-w-lg:hidden'
+              className='max-lg:[&_span]:truncate'
             >
-              Sign Out
+              <LogOut />
+              <span>Sign Out</span>
             </Button>
           </div>
 
@@ -111,17 +118,23 @@ function App() {
                 ),
               )
             ) : (
-              <div className='w-full h-64 flex flex-col justify-center items-center gap-4 text-muted-foreground'>
-                <p>{search ? 'No tasks match your search' : 'No tasks yet'}</p>
-                {!search && !showTaskInput && (
-                  <Button
-                    onClick={() => setShowTaskInput(true)}
-                    className='shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
-                  >
-                    <Plus />
-                    <span>Create your first task</span>
-                  </Button>
-                )}
+              <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+                {!showTaskInput &&
+                  (search ? (
+                    <EmptyState
+                      icon={<SearchX />}
+                      title='Task Not Found'
+                      description='Try searching for something else'
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={<CircleMinus />}
+                      action={() => setShowTaskInput(true)}
+                      title='No Tasks Created'
+                      description='You have not created any tasks yet. Click the button below to create your first task.
+'
+                    />
+                  ))}
               </div>
             )}
           </div>
@@ -146,3 +159,31 @@ function App() {
     </main>
   );
 }
+
+const EmptyState = ({
+  action,
+  icon,
+  title,
+  description,
+}: {
+  action?: () => void;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => (
+  <Empty className='from-muted/50 to-background h-full bg-linear-to-b from-30%'>
+    <EmptyHeader>
+      <EmptyMedia variant='icon'>{icon}</EmptyMedia>
+      <EmptyTitle>title</EmptyTitle>
+      <EmptyDescription>{description}</EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      {title === 'No Tasks Created' && (
+        <Button variant='outline' size='sm' onClick={action}>
+          <Plus />
+          Create Task
+        </Button>
+      )}
+    </EmptyContent>
+  </Empty>
+);
