@@ -15,7 +15,7 @@ import {
 } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/components/ui/spinner';
 
 export const Route = createFileRoute('/')({
   component: App,
