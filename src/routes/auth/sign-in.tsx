@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from '@tanstack/react-router';
+import { Spinner } from '@/components/ui/spinner';
 
 export const Route = createFileRoute('/auth/sign-in')({
   component: SignInPage,
@@ -119,7 +120,7 @@ function SignInPage() {
         </div>
 
         <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Sign In'}
+          {isLoading ? `${<Spinner />} Signing in...` : 'Sign In'}
         </Button>
       </form>
 
