@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: task-tracker
+    runtime: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
