@@ -17,10 +17,6 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/')({
-  loader: async ({ context: { trpc, queryClient } }) => {
-    await queryClient.ensureQueryData(trpc.getSession.queryOptions());
-    return;
-  },
   component: App,
 });
 
@@ -36,23 +32,16 @@ function App() {
   const { isEditing } = useTaskContext();
   // const { session, isLoading, user } = useAuth();
 
-  const getSession = async () => {
-    await authClient.getSession();
-
-    return (await authClient.getSession()).data;
-  };
-
-  const { data: session } = useQuery({
-    queryKey: ['session'],
-    queryFn: () => getSession(),
-  });
+  // Use Better Auth's built-in useSession hook for reactive session state
+  const { data: session, isPending: isSessionLoading } =
+    authClient.useSession();
   const isFetching = useRouterState({ select: (s) => s.isLoading });
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Use useEffect for navigation to avoid calling navigate during render
-  if (!isFetching && (!session?.session || !session?.user)) {
+  // Redirect to sign-in if not authenticated
+  if (!isFetching && !isSessionLoading && !session?.user) {
     navigate({ to: '/auth/sign-in' });
   }
 
@@ -82,7 +71,7 @@ function App() {
 
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
-      {isFetching ? (
+      {isFetching || isSessionLoading ? (
         <div className='w-full h-svh justify-center items-center'>
           Loading...
         </div>
