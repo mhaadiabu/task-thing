@@ -16,6 +16,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isProduction = process.env.NODE_ENV === 'production';
 
+console.log('[Server] Starting...');
+console.log('[Server] NODE_ENV:', process.env.NODE_ENV);
+console.log('[Server] isProduction:', isProduction);
+console.log('[Server] __dirname:', __dirname);
+
 const app = express();
 
 // Validate required envs early
@@ -70,12 +75,6 @@ const appRouter = router({
       }
       return data;
     }),
-  getSession: publicProcedure.query(async ({ ctx }) => {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(ctx.headers),
-    });
-    return session;
-  }),
   createTask: publicProcedure
     .input(z.object({ userId: z.string().min(1), task: z.string().min(1) }))
     .mutation(async (opts) => {
@@ -132,11 +131,6 @@ const appRouter = router({
     }),
 });
 
-// Create tRPC Express middleware
-const createContext = ({ req }: trpcExpress.CreateExpressContextOptions) => ({
-  headers: req.headers,
-});
-
 // Better Auth handler (Express v5 style path)
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
@@ -148,9 +142,18 @@ app.use(
   '/trpc',
   trpcExpress.createExpressMiddleware({
     router: appRouter,
-    createContext,
   }),
 );
+
+// Health check endpoint for debugging
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV,
+    isProduction,
+  });
+});
 
 // Example session route
 app.get('/api/me', async (req, res) => {
@@ -173,11 +176,19 @@ app.get('/api/me', async (req, res) => {
 });
 
 // In production, serve static files from the Vite build output
-if (isProduction) {
-  const distPath = path.resolve(__dirname, '../dist');
+// dist folder is at the project root, same level as server folder
+const distPath = path.resolve(__dirname, '../dist');
+console.log('[Server] Static files path:', distPath);
 
-  // Serve static assets
-  app.use(express.static(distPath));
+if (isProduction) {
+  // Serve static assets (but not for API routes)
+  app.use((req, res, next) => {
+    // Skip static file serving for API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/trpc')) {
+      return next();
+    }
+    express.static(distPath)(req, res, next);
+  });
 
   // SPA fallback - serve index.html for all non-API routes
   app.get('*', (req, res, next) => {
@@ -199,7 +210,12 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`[Server] Listening on port ${PORT}`);
+  console.log(`[Server] tRPC endpoint: http://localhost:${PORT}/trpc`);
+  console.log(`[Server] Auth endpoint: http://localhost:${PORT}/api/auth`);
+  if (isProduction) {
+    console.log(`[Server] Serving static files from: ${distPath}`);
+  }
 });
 
 export type AppRouter = typeof appRouter;
