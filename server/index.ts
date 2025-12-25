@@ -1,14 +1,20 @@
-import { createHTTPHandler } from '@trpc/server/adapters/standalone';
+import * as trpcExpress from '@trpc/server/adapters/express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import cors from 'cors';
 import { desc, eq } from 'drizzle-orm';
 import express, { type ErrorRequestHandler } from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import * as z from 'zod';
 import { auth } from '../auth';
 import { tryCatch } from '../src/lib/utils/try-catch';
 import { db } from './db';
 import { tasks } from './db/schema';
 import { publicProcedure, router } from './trpc';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
 
@@ -126,14 +132,9 @@ const appRouter = router({
     }),
 });
 
-// Create tRPC HTTP handler
-const trpcHandler = createHTTPHandler({
-  router: appRouter,
-  createContext({ req }) {
-    return {
-      headers: req.headers,
-    };
-  },
+// Create tRPC Express middleware
+const createContext = ({ req }: trpcExpress.CreateExpressContextOptions) => ({
+  headers: req.headers,
 });
 
 // Better Auth handler (Express v5 style path)
@@ -143,7 +144,13 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(express.json());
 
 // tRPC
-app.use('/trpc', trpcHandler);
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  }),
+);
 
 // Example session route
 app.get('/api/me', async (req, res) => {
@@ -164,6 +171,23 @@ app.get('/api/me', async (req, res) => {
 
   res.json({ user: session.user });
 });
+
+// In production, serve static files from the Vite build output
+if (isProduction) {
+  const distPath = path.resolve(__dirname, '../dist');
+
+  // Serve static assets
+  app.use(express.static(distPath));
+
+  // SPA fallback - serve index.html for all non-API routes
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/trpc')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Centralized error handler (after routes)
 const errorHandler: ErrorRequestHandler = (err, _req, res) => {
