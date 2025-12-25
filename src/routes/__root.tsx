@@ -1,9 +1,18 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import TaskProvider from '@/components/TaskProvider';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '../utils/trpc';
+// import { QueryClientProvider } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
+// import { queryClient } from '../utils/trpc';
+import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
+import type { AppRouter } from 'server';
+// import { useRouterState } from '@tanstack/react-router';
 
-export const Route = createRootRoute({
+export interface RouterAppContext {
+  trpc: TRPCOptionsProxy<AppRouter>;
+  queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
 });
 
@@ -14,10 +23,10 @@ export const Route = createRootRoute({
  */
 function RootComponent() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TaskProvider>
-        <Outlet />
-      </TaskProvider>
-    </QueryClientProvider>
+    // <QueryClientProvider client={queryClient}>
+    <TaskProvider>
+      <Outlet />
+    </TaskProvider>
+    // </QueryClientProvider>
   );
 }
