@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm dev:server && pnpm dev:client",
+    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
     "dev:client": "vite",
     "dev:server": "tsx --watch server/index.ts",
     "build": "pnpm run build:server && pnpm run build:client",
