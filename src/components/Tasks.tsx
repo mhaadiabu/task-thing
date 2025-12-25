@@ -10,19 +10,20 @@ import { Label } from './ui/label';
 
 interface TasksProps {
   id: string;
+  userId: string;
   task: string;
   status: 'pending' | 'completed';
   className?: string;
 }
 
-const Tasks = ({ id, task, status, className }: TasksProps) => {
+const Tasks = ({ id, userId, task, status, className }: TasksProps) => {
   const { setIsEditing } = useTaskContext();
 
   const toggleStatus = useMutation(
     trpc.updateTask.mutationOptions({
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.updateTask.mutationKey(),
+          queryKey: trpc.getTasks.queryKey({ userId }),
         });
       },
     }),
@@ -32,7 +33,7 @@ const Tasks = ({ id, task, status, className }: TasksProps) => {
     trpc.deleteTask.mutationOptions({
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.deleteTask.mutationKey(),
+          queryKey: trpc.getTasks.queryKey({ userId }),
         });
       },
     }),

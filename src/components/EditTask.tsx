@@ -9,10 +9,11 @@ import { Input } from './ui/input';
 
 interface EditTaskProps {
   id: string;
+  userId: string;
   task: string;
 }
 
-const EditTask = ({ id, task }: EditTaskProps) => {
+const EditTask = ({ id, userId, task }: EditTaskProps) => {
   const { setIsEditing } = useTaskContext();
 
   const [editedTask, setEditedTask] = useState(task);
@@ -21,7 +22,7 @@ const EditTask = ({ id, task }: EditTaskProps) => {
     trpc.editTask.mutationOptions({
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.editTask.mutationKey(),
+          queryKey: trpc.getTasks.queryKey({ userId }),
         });
       },
     }),

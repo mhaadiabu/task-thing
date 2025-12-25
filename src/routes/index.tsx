@@ -89,7 +89,12 @@ function App() {
             {filteredTasks && filteredTasks.length > 0 ? (
               filteredTasks.map((task) =>
                 isEditing === task.id ? (
-                  <EditTask key={task.id} id={task.id} task={task.task} />
+                  <EditTask
+                    key={task.id}
+                    id={task.id}
+                    userId={task.userId}
+                    task={task.task}
+                  />
                 ) : (
                   <Tasks
                     key={task.id}

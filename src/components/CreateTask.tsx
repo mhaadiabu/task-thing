@@ -19,7 +19,7 @@ const CreateTask = ({ cancel, userId }: Props) => {
     trpc.createTask.mutationOptions({
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.createTask.mutationKey(),
+          queryKey: trpc.getTasks.queryKey({ userId }),
         });
       },
     }),
