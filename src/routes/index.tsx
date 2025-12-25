@@ -92,7 +92,7 @@ function App() {
               variant='destructive'
               size='icon'
               onClick={async () => await authClient.signOut()}
-              className='max-lg:[&_span]:truncate'
+              className='max-lg:[&>span]:truncate'
             >
               <LogOut />
               <span>Sign Out</span>
@@ -174,12 +174,12 @@ const EmptyState = ({
   <Empty className='from-muted/50 to-background h-full bg-linear-to-b from-30%'>
     <EmptyHeader>
       <EmptyMedia variant='icon'>{icon}</EmptyMedia>
-      <EmptyTitle>title</EmptyTitle>
+      <EmptyTitle>{title}</EmptyTitle>
       <EmptyDescription>{description}</EmptyDescription>
     </EmptyHeader>
     <EmptyContent>
       {title === 'No Tasks Created' && (
-        <Button variant='outline' size='sm' onClick={action}>
+        <Button size='sm' onClick={action}>
           <Plus />
           Create Task
         </Button>
