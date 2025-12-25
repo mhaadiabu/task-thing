@@ -5,14 +5,22 @@ import Tasks from '@/components/Tasks';
 import { Button } from '@/components/ui/button';
 import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { useAuth } from '@/lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/')({
+  loader: async ({ context: { trpc, queryClient } }) => {
+    await queryClient.ensureQueryData(trpc.getSession.queryOptions());
+    return;
+  },
   component: App,
 });
 
@@ -26,17 +34,29 @@ export const Route = createFileRoute('/')({
 function App() {
   const navigate = useNavigate();
   const { isEditing } = useTaskContext();
-  const { session, isLoading, user, isAuthenticated } = useAuth();
+  // const { session, isLoading, user } = useAuth();
+
+  const getSession = async () => {
+    await authClient.getSession();
+
+    return (await authClient.getSession()).data;
+  };
+
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: () => getSession(),
+  });
+  const isFetching = useRouterState({ select: (s) => s.isLoading });
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
   // Use useEffect for navigation to avoid calling navigate during render
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && !session) {
-      navigate({ to: '/auth/sign-in' });
-    }
-  }, [isLoading, isAuthenticated, session, navigate]);
+  if (!isFetching && (!session?.session || !session?.user)) {
+    navigate({ to: '/auth/sign-in' });
+  }
+
+  const user = session?.user;
 
   const { data: tasks } = useQuery(
     trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user }),
@@ -62,7 +82,7 @@ function App() {
 
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
-      {isLoading ? (
+      {isFetching ? (
         <div className='w-full h-svh justify-center items-center'>
           Loading...
         </div>
