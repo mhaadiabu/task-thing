@@ -191,7 +191,8 @@ if (isProduction) {
   });
 
   // SPA fallback - serve index.html for all non-API routes
-  app.get('*', (req, res, next) => {
+  // Express 5 uses {*path} syntax instead of * for wildcards
+  app.get('{*path}', (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith('/api') || req.path.startsWith('/trpc')) {
       return next();
