@@ -9,6 +9,7 @@ import { tryCatch } from '../src/lib/utils/try-catch';
 import { db } from './db';
 import { tasks } from './db/schema';
 import { publicProcedure, router } from './trpc';
+import { authClient } from '@/lib/auth-client';
 
 const app = express();
 
@@ -64,6 +65,10 @@ const appRouter = router({
       }
       return data;
     }),
+  getSession: publicProcedure.query(async () => {
+    const session = (await authClient.getSession()).data?.session;
+    return session;
+  }),
   createTask: publicProcedure
     .input(z.object({ userId: z.string().min(1), task: z.string().min(1) }))
     .mutation(async (opts) => {
