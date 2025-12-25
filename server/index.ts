@@ -9,7 +9,6 @@ import { tryCatch } from '../src/lib/utils/try-catch';
 import { db } from './db';
 import { tasks } from './db/schema';
 import { publicProcedure, router } from './trpc';
-import { authClient } from '@/lib/auth-client';
 
 const app = express();
 
@@ -65,8 +64,10 @@ const appRouter = router({
       }
       return data;
     }),
-  getSession: publicProcedure.query(async () => {
-    const session = (await authClient.getSession()).data?.session;
+  getSession: publicProcedure.query(async ({ ctx }) => {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(ctx.headers),
+    });
     return session;
   }),
   createTask: publicProcedure
@@ -128,8 +129,10 @@ const appRouter = router({
 // Create tRPC HTTP handler
 const trpcHandler = createHTTPHandler({
   router: appRouter,
-  createContext() {
-    return {};
+  createContext({ req }) {
+    return {
+      headers: req.headers,
+    };
   },
 });
 
