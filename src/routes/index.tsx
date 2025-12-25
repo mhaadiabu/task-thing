@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import Spinner from '@/components/Spinner';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -72,18 +73,24 @@ function App() {
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
       {isFetching || isSessionLoading ? (
-        <div className='w-full h-svh justify-center items-center'>
-          Loading...
-        </div>
+        <Spinner />
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
-          <SearchTask
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onClear={() => setSearch('')}
-          />
+          <div className='flex w-full items-center'>
+            <SearchTask
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClear={() => setSearch('')}
+            />
 
-          <p>{user?.name}</p>
+            <Button
+              variant='destructive'
+              onClick={async () => await authClient.signOut()}
+              className='max-w-lg:hidden'
+            >
+              Sign Out
+            </Button>
+          </div>
 
           <div className='flex flex-col gap-2.5 mt-4 w-full'>
             {filteredTasks && filteredTasks.length > 0 ? (
