@@ -1,11 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link } from '@tanstack/react-router';
 import { Spinner } from '@/components/ui/spinner';
+import { authClient } from '@/lib/auth-client';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/auth/sign-in')({
   component: SignInPage,
@@ -53,8 +52,7 @@ function SignInPage() {
 
     if (data) {
       setSuccessMessage('Signed in successfully!');
-      // Use a small delay to ensure cookies are properly set before navigation
-      // Then refetch session to confirm authentication
+      // Delay to ensure cookies are properly set before navigation
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Force a session refresh to ensure the client picks up the new cookies
@@ -120,7 +118,14 @@ function SignInPage() {
         </div>
 
         <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? `${<Spinner />} Signing in...` : 'Sign In'}
+          {isLoading ? (
+            <div className='flex items-center justify-center'>
+              <Spinner />
+              <span className='ml-2'>Signing in...</span>
+            </div>
+          ) : (
+            'Sign In'
+          )}
         </Button>
       </form>
 

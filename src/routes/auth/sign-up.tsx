@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link } from '@tanstack/react-router';
+import { Spinner } from '@/components/ui/spinner';
+import { authClient } from '@/lib/auth-client';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/auth/sign-up')({
   component: SignUpPage,
@@ -132,7 +132,14 @@ function SignUpPage() {
         </div>
 
         <Button type='submit' className='w-full' disabled={isLoading}>
-          {isLoading ? 'Creating account...' : 'Sign Up'}
+          {isLoading ? (
+            <div className='flex items-center justify-center'>
+              <Spinner />
+              <span className='ml-2'>Creating account...</span>
+            </div>
+          ) : (
+            'Sign Up'
+          )}
         </Button>
       </form>
 
