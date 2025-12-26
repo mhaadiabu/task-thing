@@ -13,7 +13,11 @@ export function createRouter() {
       trpc,
       queryClient,
     },
-    defaultPendingComponent: () => <Spinner className='size-8' />,
+    defaultPendingComponent: () => (
+      <div className='w-full h-screen justify-center items-center'>
+        <Spinner className='size-8' />
+      </div>
+    ),
     Wrap: function WrapComponent({ children }) {
       return (
         <QueryClientProvider client={queryClient}>

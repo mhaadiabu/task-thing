@@ -51,8 +51,7 @@ function SignUpPage() {
 
     if (data) {
       setSuccessMessage('Account created successfully!');
-      // Use a small delay to ensure cookies are properly set before navigation
-      // Then refetch session to confirm authentication
+      // Delay to ensure cookies are properly set before navigation
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Force a session refresh to ensure the client picks up the new cookies

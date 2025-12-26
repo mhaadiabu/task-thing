@@ -131,7 +131,7 @@ const appRouter = router({
     }),
 });
 
-// Better Auth handler (Express v5 style path)
+// Better Auth handler
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // Parse JSON for other routes
@@ -191,7 +191,6 @@ if (isProduction) {
   });
 
   // SPA fallback - serve index.html for all non-API routes
-  // Express 5 uses {*path} syntax instead of * for wildcards
   app.get('{*path}', (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith('/api') || req.path.startsWith('/trpc')) {
