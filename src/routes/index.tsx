@@ -76,9 +76,11 @@ function App() {
   );
 
   return (
-    <main className='bg-background text-foreground font-medium w-full min-h-svh px-4 py-7 font-mono text-base dark'>
+    <main className='bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 font-mono text-base dark'>
       {isFetching || isSessionLoading ? (
-        <Spinner />
+        <div className='w-full h-screen flex justify-center items-center'>
+          <Spinner className='size-12' />
+        </div>
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
           <div className='flex w-full items-center gap-2'>
@@ -92,10 +94,9 @@ function App() {
               variant='destructive'
               size='icon'
               onClick={async () => await authClient.signOut()}
-              className='max-lg:[&>span]:truncate'
             >
               <LogOut />
-              <span>Sign Out</span>
+              <span className='max-lg:hidden'>Sign Out</span>
             </Button>
           </div>
 
