@@ -92,7 +92,6 @@ function App() {
 
             <Button
               variant='destructive'
-              size='icon'
               onClick={async () => await authClient.signOut()}
             >
               <LogOut />
@@ -172,7 +171,7 @@ const EmptyState = ({
   title: string;
   description: string;
 }) => (
-  <Empty className='from-muted/50 to-background h-full bg-linear-to-b from-30%'>
+  <Empty>
     <EmptyHeader>
       <EmptyMedia variant='icon'>{icon}</EmptyMedia>
       <EmptyTitle>{title}</EmptyTitle>

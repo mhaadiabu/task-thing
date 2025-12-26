@@ -14,7 +14,7 @@ export function createRouter() {
       queryClient,
     },
     defaultPendingComponent: () => (
-      <div className='w-full h-screen justify-center items-center'>
+      <div className='w-screen h-screen justify-center items-center'>
         <Spinner className='size-8' />
       </div>
     ),
