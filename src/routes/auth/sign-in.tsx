@@ -64,7 +64,7 @@ function SignInPage() {
   };
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-6 w-full'>
       <div className='space-y-2 text-center'>
         <h1 className='text-3xl font-bold'>Sign In</h1>
         <p className='text-muted-foreground'>
