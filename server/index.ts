@@ -1,7 +1,7 @@
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import cors from 'cors';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import express, { type ErrorRequestHandler } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
