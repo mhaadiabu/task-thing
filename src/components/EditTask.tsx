@@ -1,4 +1,5 @@
 import { useTaskContext } from '@/context/TaskContext';
+import type { Task } from '@/types/task';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Check, X } from 'lucide-react';
@@ -20,6 +21,36 @@ const EditTask = ({ id, userId, task }: EditTaskProps) => {
 
   const edit = useMutation(
     trpc.editTask.mutationOptions({
+      onMutate: async (variables) => {
+        await queryClient.cancelQueries({
+          queryKey: trpc.getTasks.queryKey({ userId }),
+        });
+
+        const previousTasks = queryClient.getQueryData<Task[]>(
+          trpc.getTasks.queryKey({ userId }),
+        );
+
+        // Optimistically update task text in cache
+        queryClient.setQueryData<Task[] | undefined>(
+          trpc.getTasks.queryKey({ userId }),
+          (old) => {
+            if (!old) return old;
+            return old.map((t) =>
+              t.id === variables.id ? { ...t, task: variables.task } : t,
+            );
+          },
+        );
+
+        return { previousTasks };
+      },
+      onError: (_error, _variables, context) => {
+        if (context?.previousTasks) {
+          queryClient.setQueryData<Task[] | undefined>(
+            trpc.getTasks.queryKey({ userId }),
+            context.previousTasks,
+          );
+        }
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.getTasks.queryKey({ userId }),
@@ -29,8 +60,10 @@ const EditTask = ({ id, userId, task }: EditTaskProps) => {
   );
 
   const editTask = () => {
-    edit.mutate({ id: id, task: editedTask.trim() });
+    const next = editedTask.trim();
+    if (!next) return;
 
+    edit.mutate({ id, task: next });
     setIsEditing(null);
   };
 
