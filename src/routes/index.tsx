@@ -24,6 +24,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
+import { ViewTransition } from '@/utils/view-transitions';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -99,45 +100,47 @@ function App() {
             </Button>
           </div>
 
-          <div className='flex flex-col gap-2.5 mt-4 w-full'>
-            {filteredTasks && filteredTasks.length > 0 ? (
-              filteredTasks.map((task) =>
-                isEditing === task.id ? (
-                  <EditTask
-                    key={task.id}
-                    id={task.id}
-                    userId={task.userId}
-                    task={task.task}
-                  />
-                ) : (
-                  <Tasks
-                    key={task.id}
-                    {...task}
-                    className='not-last:border-b pb-2.5'
-                  />
-                ),
-              )
-            ) : (
-              <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
-                {!showTaskInput &&
-                  (search ? (
-                    <EmptyState
-                      icon={<SearchX />}
-                      title='Task Not Found'
-                      description='Try searching for something else'
+          <ViewTransition>
+            <div className='flex flex-col gap-2.5 mt-4 w-full'>
+              {filteredTasks && filteredTasks.length > 0 ? (
+                filteredTasks.map((task) =>
+                  isEditing === task.id ? (
+                    <EditTask
+                      key={task.id}
+                      id={task.id}
+                      userId={task.userId}
+                      task={task.task}
                     />
                   ) : (
-                    <EmptyState
-                      icon={<CircleMinus />}
-                      action={() => setShowTaskInput(true)}
-                      title='No Tasks Created'
-                      description='You have not created any tasks yet. Click the button below to create your first task.
-'
+                    <Tasks
+                      key={task.id}
+                      {...task}
+                      className='not-last:border-b pb-2.5'
                     />
-                  ))}
-              </div>
-            )}
-          </div>
+                  ),
+                )
+              ) : (
+                <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+                  {!showTaskInput &&
+                    (search ? (
+                      <EmptyState
+                        icon={<SearchX />}
+                        title='Task Not Found'
+                        description='Try searching for something else'
+                      />
+                    ) : (
+                      <EmptyState
+                        icon={<CircleMinus />}
+                        action={() => setShowTaskInput(true)}
+                        title='No Tasks Created'
+                        description='You have not created any tasks yet. Click the button below to create your first task.
+'
+                      />
+                    ))}
+                </div>
+              )}
+            </div>
+          </ViewTransition>
           <div>
             {showTaskInput ? (
               <CreateTask
