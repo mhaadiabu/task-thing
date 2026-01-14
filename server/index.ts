@@ -67,7 +67,7 @@ const appRouter = router({
           .select()
           .from(tasks)
           .where(eq(tasks.userId, userId))
-          .orderBy(desc(tasks.updatedAt)),
+          .orderBy(tasks.status, desc(tasks.updatedAt)),
       );
       if (error) {
         console.error('getTasks error:', error);
