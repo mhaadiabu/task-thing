@@ -8,11 +8,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
-import {
-  createFileRoute,
-  useNavigate,
-  useRouterState,
-} from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { Spinner } from '@/components/ui/spinner';
@@ -43,12 +39,10 @@ function App() {
   const { data: session, isPending: isSessionLoading } =
     authClient.useSession();
 
-  const isFetching = useRouterState({ select: (s) => s.isLoading });
-
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  if (!isFetching && !isSessionLoading && !session?.user) {
+  if (!isSessionLoading && !session?.user) {
     navigate({ to: '/auth/sign-in' });
   }
 
@@ -78,7 +72,7 @@ function App() {
 
   return (
     <main className='bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 font-mono text-base dark'>
-      {isFetching || isSessionLoading ? (
+      {isSessionLoading ? (
         <div className='w-full h-screen flex justify-center items-center'>
           <Spinner className='size-12' />
         </div>
