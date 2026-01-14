@@ -1,4 +1,6 @@
+import type { Task } from '@/types/task';
 import { queryClient, trpc } from '@/utils/trpc';
+import type { QueryKey } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -17,6 +19,38 @@ const CreateTask = ({ cancel, userId }: Props) => {
 
   const newTask = useMutation(
     trpc.createTask.mutationOptions({
+      onMutate: async ({ userId, task }) => {
+        const queryKey = trpc.getTasks.queryKey({ userId }) as QueryKey;
+
+        // Cancel outgoing fetches so we don't overwrite our optimistic update
+        await queryClient.cancelQueries({ queryKey });
+
+        const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
+
+        const optimisticTask: Task = {
+          id: `optimistic-${Date.now()}`,
+          userId,
+          task,
+          status: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        queryClient.setQueryData<Task[]>(queryKey, (old) => {
+          const current = old ?? [];
+          return [optimisticTask, ...current];
+        });
+
+        return { previousTasks, queryKey };
+      },
+      onError: (_err, _variables, context) => {
+        if (context?.previousTasks) {
+          queryClient.setQueryData<Task[]>(
+            context.queryKey as QueryKey,
+            context.previousTasks,
+          );
+        }
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.getTasks.queryKey({ userId }),
@@ -36,7 +70,6 @@ const CreateTask = ({ cancel, userId }: Props) => {
     newTask.mutate({ userId, task: taskItem.trim() });
 
     setTaskItem('');
-
     cancel();
   };
 
