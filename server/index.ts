@@ -67,8 +67,12 @@ const appRouter = router({
           .select()
           .from(tasks)
           .where(eq(tasks.userId, userId))
-          .orderBy(desc(
-            sql`array_position(ARRAY['pending', 'completed']::text[], ${tasks.status})`, tasks.createdAt)),
+          .orderBy(
+            desc(
+              sql`array_position(ARRAY['pending', 'completed']::text[], ${tasks.status})`,
+            ),
+            desc(tasks.updatedAt),
+          ),
       );
       if (error) {
         console.error('getTasks error:', error);
