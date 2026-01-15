@@ -95,7 +95,7 @@ function App() {
           </div>
 
           <ViewTransition>
-            <div className='flex flex-col gap-2.5 mt-4 w-full'>
+            <div className='flex flex-col gap-4 mt-4 w-full divide-y divide-border'>
               {filteredTasks && filteredTasks.length > 0 ? (
                 filteredTasks.map((task) =>
                   isEditing === task.id ? (
@@ -109,7 +109,6 @@ function App() {
                     <Tasks
                       key={task.id}
                       {...task}
-                      className='not-last:border-b pb-2.5'
                     />
                   ),
                 )
