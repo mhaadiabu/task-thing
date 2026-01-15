@@ -147,6 +147,12 @@ export const ViewTransition = ({
 
   // When not using experimental wrapper, you can still get view transitions
   // by triggering state updates inside `document.startViewTransition(...)`.
-  // `name` is not applied here because it's meaningful only to the wrapper/CSS.
-  return <FallbackTag className={className}>{children}</FallbackTag>;
+  return (
+    <FallbackTag
+      className={className}
+      style={name ? { viewTransitionName: name } : undefined}
+    >
+      {children}
+    </FallbackTag>
+  );
 };

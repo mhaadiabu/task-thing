@@ -274,6 +274,76 @@
   }
 }
 
+@keyframes slide-down-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-down-in {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* When a task is moving to completed */
+.task-completed {
+  view-transition-name: task-item;
+}
+
+::view-transition-old(task-item):only-child {
+  animation: 0.3s ease-in both slide-down-out;
+}
+
+::view-transition-new(task-item):only-child {
+  animation: 0.3s ease-out both slide-up-in;
+}
+
+/* When a task is moving to pending */
+.task-pending {
+  view-transition-name: task-item;
+}
+
+::view-transition-old(task-item):only-child {
+  animation: 0.3s ease-in both slide-up-out;
+}
+
+::view-transition-new(task-item):only-child {
+  animation: 0.3s ease-out both slide-down-in;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @view-transition {
     navigation: auto;

@@ -1,7 +1,7 @@
 import { useTaskContext } from '@/context/TaskContext';
 import { cn } from '@/lib/utils';
 import type { Task } from '@/types/task';
-import { ViewTransition } from '@/utils/view-transitions';
+import { ViewTransition, withViewTransition } from '@/utils/view-transitions';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
@@ -35,15 +35,17 @@ const Tasks = ({ id, userId, task, status, className }: TasksProps) => {
         const nextStatus = vars.status === 'pending' ? 'completed' : 'pending';
 
         // Optimistically update the cache (so the checkbox/label update immediately).
-        queryClient.setQueryData<Task[] | undefined>(
-          trpc.getTasks.queryKey({ userId }),
-          (current) => {
-            if (!current) return current;
-            return current.map((t: Task) =>
-              t.id === vars.id ? { ...t, status: nextStatus } : t,
-            );
-          },
-        );
+        withViewTransition(() => {
+          queryClient.setQueryData<Task[] | undefined>(
+            trpc.getTasks.queryKey({ userId }),
+            (current) => {
+              if (!current) return current;
+              return current.map((t: Task) =>
+                t.id === vars.id ? { ...t, status: nextStatus } : t,
+              );
+            },
+          );
+        });
 
         return { previous };
       },
@@ -102,7 +104,12 @@ const Tasks = ({ id, userId, task, status, className }: TasksProps) => {
   );
 
   return (
-    <ViewTransition>
+    <ViewTransition
+      name={`task-${id}`}
+      className={cn(
+        status === 'completed' ? 'task-completed' : 'task-pending',
+      )}
+    >
       <div className={cn('flex gap-2 justify-between items-center', className)}>
         <div className='flex gap-2 items-center justify-start'>
           <Checkbox
