@@ -1,0 +1,77 @@
+import { useTaskContext } from '@/context/TaskContext';
+import { cn } from '@/lib/utils';
+import { queryClient, trpc } from '@/utils/trpc';
+import { useMutation } from '@tanstack/react-query';
+import { Edit3, Trash2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { ButtonGroup } from './ui/button-group';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
+
+interface TasksProps {
+  id: string;
+  userId: string;
+  task: string;
+  status: 'pending' | 'completed';
+  className?: string;
+}
+
+export const Task = ({ id, userId, task, status, className }: TasksProps) => {
+  const { setIsEditing } = useTaskContext();
+
+  const toggleStatus = useMutation(
+    trpc.updateTask.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getTasks.queryKey({ userId }),
+        });
+      },
+    }),
+  );
+
+  const deleteTask = useMutation(
+    trpc.deleteTask.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getTasks.queryKey({ userId }),
+        });
+      },
+    }),
+  );
+
+  return (
+    <div className={cn('flex gap-2 justify-between items-center', className)}>
+      <div className='flex gap-2 items-center justify-start'>
+        <Checkbox
+          id={`task-${id}`}
+          checked={status === 'completed'}
+          onCheckedChange={() => toggleStatus.mutate({ id, status })}
+        />
+        <Label
+          htmlFor={`task-${id}`}
+          className={cn(
+            status === 'completed'
+              ? 'line-through text-muted-foreground'
+              : 'no-underline',
+            'word-wrap',
+          )}
+        >
+          {task}
+        </Label>
+      </div>
+
+      <ButtonGroup>
+        <Button size='icon' onClick={() => setIsEditing(id)}>
+          <Edit3 />
+        </Button>
+        <Button
+          size='icon'
+          variant='destructive'
+          onClick={() => deleteTask.mutate({ id })}
+        >
+          <Trash2 />
+        </Button>
+      </ButtonGroup>
+    </div>
+  );
+};
