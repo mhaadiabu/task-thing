@@ -15,7 +15,7 @@ interface Props {
   onClear: () => void;
 }
 
-const SearchTask = ({ value, onChange, onClear }: Props) => {
+export const SearchTask = ({ value, onChange, onClear }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Cmd/Ctrl + K to focus search
@@ -52,5 +52,3 @@ const SearchTask = ({ value, onChange, onClear }: Props) => {
     </div>
   );
 };
-
-export default SearchTask;
