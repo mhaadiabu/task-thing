@@ -13,7 +13,7 @@ interface Props {
   userId: string;
 }
 
-const CreateTask = ({ cancel, userId }: Props) => {
+export const NewTask = ({ cancel, userId }: Props) => {
   const [taskItem, setTaskItem] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -107,5 +107,3 @@ const CreateTask = ({ cancel, userId }: Props) => {
     </div>
   );
 };
-
-export default CreateTask;
