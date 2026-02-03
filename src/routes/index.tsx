@@ -1,7 +1,7 @@
-import CreateTask from '@/components/CreateTask';
-import EditTask from '@/components/EditTask';
-import SearchTask from '@/components/SearchTask';
-import Tasks from '@/components/Tasks';
+import { NewTask } from '@/components/new-task';
+import { EditTask } from '@/components/edit-task';
+import { SearchTask } from '@/components/search-task';
+import { Task } from '@/components/task';
 import { Button } from '@/components/ui/button';
 import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
@@ -10,21 +10,16 @@ import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty';
-import { ViewTransition } from '@/utils/view-transitions';
+import { EmptyTask } from '@/components/empty-task';
+import type { TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
   component: App,
 });
+
+const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
 
 /**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
@@ -66,77 +61,90 @@ function App() {
     { enabled: showTaskInput },
   );
 
-  const filteredTasks = tasks?.filter(({ task }) =>
+  const sortedTasks = useMemo(() => {
+    if (!tasks) return [];
+
+    return [...tasks].sort((a, b) => {
+      const statusDiff =
+        STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
+
+      if (statusDiff !== 0) return statusDiff;
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [tasks]);
+
+  const filteredTasks = sortedTasks?.filter(({ task }) =>
     task.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <main className='bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 font-mono text-base dark'>
+    <main className='bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 text-base dark'>
       {isSessionLoading ? (
         <div className='w-full h-screen flex justify-center items-center'>
           <Spinner className='size-12' />
         </div>
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
-          <div className='flex w-full items-center gap-2'>
-            <SearchTask
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onClear={() => setSearch('')}
-            />
+          <div className='flex w-full justify-between items-center'>
+            <h3 className='text-lg font-bold capitalize text-left'>Tasks</h3>
 
             <Button
               variant='destructive'
               onClick={async () => await authClient.signOut()}
             >
               <LogOut />
-              <span className='max-lg:hidden'>Sign Out</span>
+              <span>Sign Out</span>
             </Button>
           </div>
 
-          <ViewTransition>
-            <div className='flex flex-col gap-4 mt-4 w-full divide-y divide-border'>
-              {filteredTasks && filteredTasks.length > 0 ? (
-                filteredTasks.map((task) =>
-                  isEditing === task.id ? (
-                    <EditTask
-                      key={task.id}
-                      id={task.id}
-                      userId={task.userId}
-                      task={task.task}
+          <div className='flex w-full items-center gap-2'>
+            <SearchTask
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClear={() => setSearch('')}
+            />
+          </div>
+
+          <div className='flex flex-col gap-4 mt-4 w-full divide-y divide-border'>
+            {filteredTasks && filteredTasks.length > 0 ? (
+              filteredTasks.map((task) =>
+                isEditing === task.id ? (
+                  <EditTask
+                    key={task.id}
+                    id={task.id}
+                    userId={task.userId}
+                    task={task.task}
+                  />
+                ) : (
+                  <Task key={task.id} {...task} />
+                ),
+              )
+            ) : (
+              <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+                {!showTaskInput &&
+                  (search ? (
+                    <EmptyTask
+                      icon={<SearchX />}
+                      title='Task Not Found'
+                      description='Try searching for something else'
                     />
                   ) : (
-                    <Tasks
-                      key={task.id}
-                      {...task}
-                    />
-                  ),
-                )
-              ) : (
-                <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
-                  {!showTaskInput &&
-                    (search ? (
-                      <EmptyState
-                        icon={<SearchX />}
-                        title='Task Not Found'
-                        description='Try searching for something else'
-                      />
-                    ) : (
-                      <EmptyState
-                        icon={<CircleMinus />}
-                        action={() => setShowTaskInput(true)}
-                        title='No Tasks Created'
-                        description='You have not created any tasks yet. Click the button below to create your first task.
+                    <EmptyTask
+                      icon={<CircleMinus />}
+                      action={() => setShowTaskInput(true)}
+                      title='No Tasks Created'
+                      description='You have not created any tasks yet. Click the button below to create your first task.
 '
-                      />
-                    ))}
-                </div>
-              )}
-            </div>
-          </ViewTransition>
+                    />
+                  ))}
+              </div>
+            )}
+          </div>
+
           <div>
             {showTaskInput ? (
-              <CreateTask
+              <NewTask
                 userId={user?.id || ''}
                 cancel={() => setShowTaskInput(false)}
               />
@@ -155,31 +163,3 @@ function App() {
     </main>
   );
 }
-
-const EmptyState = ({
-  action,
-  icon,
-  title,
-  description,
-}: {
-  action?: () => void;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) => (
-  <Empty>
-    <EmptyHeader>
-      <EmptyMedia variant='icon'>{icon}</EmptyMedia>
-      <EmptyTitle>{title}</EmptyTitle>
-      <EmptyDescription>{description}</EmptyDescription>
-    </EmptyHeader>
-    <EmptyContent>
-      {title === 'No Tasks Created' && (
-        <Button size='sm' onClick={action}>
-          <Plus />
-          Create Task
-        </Button>
-      )}
-    </EmptyContent>
-  </Empty>
-);
