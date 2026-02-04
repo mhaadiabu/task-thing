@@ -48,6 +48,7 @@ export const EditTask = ({ id, userId, task }: EditTaskProps) => {
               setIsEditing(null);
             }
           }}
+          onBlur={() => setIsEditing(null)}
           autoFocus
         />
       </div>
