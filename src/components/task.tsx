@@ -7,8 +7,6 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { useOptimistic, useTransition } from 'react';
-import { useViewTransition } from '@/hooks/useViewTransition';
 
 interface TasksProps {
   id: string;
@@ -20,8 +18,6 @@ interface TasksProps {
 
 export const Task = ({ id, userId, task, status, className }: TasksProps) => {
   const { setIsEditing } = useTaskContext();
-  const [, startTransition] = useTransition();
-  const [optimisticStatus, setOptimisticStatus] = useOptimistic(status);
 
   const toggleStatus = useMutation(
     trpc.updateTask.mutationOptions({
@@ -44,36 +40,31 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
   );
 
   const handleToggle = () => {
-    startTransition(async () => {
-      const newStatus = optimisticStatus === 'completed' ? 'pending' : 'completed';
-      setOptimisticStatus(newStatus);
-      await toggleStatus.mutateAsync({ id, status });
-    });
+    toggleStatus.mutate({ id, status });
   };
 
-  const { startViewTransition } = useViewTransition();
-
   const handleDelete = () => {
-    startViewTransition(async () => {
-      await deleteTask.mutateAsync({ id });
-    });
+    deleteTask.mutate({ id });
   };
 
   return (
     <div
-      className={cn('flex gap-2 justify-between items-center task-item py-2.5', className)}
+      className={cn(
+        'flex gap-2 justify-between items-center task-item py-2.5',
+        className,
+      )}
       style={{ viewTransitionName: `task-${id}` }}
     >
       <div className='flex gap-2 items-center justify-start'>
         <Checkbox
           id={`task-${id}`}
-          checked={optimisticStatus === 'completed'}
+          checked={status === 'completed'}
           onCheckedChange={handleToggle}
         />
         <Label
           htmlFor={`task-${id}`}
           className={cn(
-            optimisticStatus === 'completed'
+            status === 'completed'
               ? 'line-through text-muted-foreground'
               : 'no-underline',
             'word-wrap',
@@ -87,11 +78,7 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
         <Button size='icon' onClick={() => setIsEditing(id)}>
           <Edit3 />
         </Button>
-        <Button
-          size='icon'
-          variant='destructive'
-          onClick={handleDelete}
-        >
+        <Button size='icon' variant='destructive' onClick={handleDelete}>
           <Trash2 />
         </Button>
       </ButtonGroup>
