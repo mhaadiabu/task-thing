@@ -87,10 +87,13 @@ function App() {
       ) : (
         <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
           <div className='flex w-full justify-between items-center'>
-            <h3 className='text-lg font-bold capitalize text-left'>Tasks</h3>
+            <h3 className='text-lg font-semibold capitalize text-left'>
+              Tasks
+            </h3>
 
             <Button
               variant='destructive'
+              size='sm'
               onClick={async () => await authClient.signOut()}
             >
               <LogOut />
@@ -98,7 +101,7 @@ function App() {
             </Button>
           </div>
 
-          <div className='flex w-full items-center gap-2'>
+          <div className='flex w-full items-center gap-2 mt-4'>
             <SearchTask
               value={search}
               onChange={(e) => setSearch(e.target.value)}
