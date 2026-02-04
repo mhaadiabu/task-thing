@@ -57,6 +57,13 @@
       "when": 1766230340823,
       "tag": "0007_purple_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770163763212,
+      "tag": "0008_little_exiles",
+      "breakpoints": true
     }
   ]
 }
