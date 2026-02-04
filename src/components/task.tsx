@@ -60,8 +60,8 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
   };
 
   return (
-    <div 
-      className={cn('flex gap-2 justify-between items-center task-item', className)}
+    <div
+      className={cn('flex gap-2 justify-between items-center task-item py-2.5', className)}
       style={{ viewTransitionName: `task-${id}` }}
     >
       <div className='flex gap-2 items-center justify-start'>
