@@ -19,12 +19,12 @@ export const SearchTask = ({ value, onChange, onClear }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Cmd/Ctrl + K to focus search
-  useKeyboardShortcut({ key: '/' }, () => {
+  useKeyboardShortcut({ key: 'k', ctrl: true }, () => {
     inputRef.current?.focus();
   });
 
   return (
-    <div className='w-full'>
+    <div className='w-full top-0 sticky z-10'>
       <InputGroup>
         <InputGroupInput
           placeholder='Search task'
@@ -36,8 +36,7 @@ export const SearchTask = ({ value, onChange, onClear }: Props) => {
           <Search />
         </InputGroupAddon>
         <InputGroupAddon align='inline-end'>
-          <Kbd>/</Kbd>
-          {value.length > 0 && (
+          {value.length > 0 ? (
             <Button
               size='icon-sm'
               variant='ghost'
@@ -46,6 +45,12 @@ export const SearchTask = ({ value, onChange, onClear }: Props) => {
             >
               <X />
             </Button>
+          ) : (
+            <>
+              <Kbd>Ctrl</Kbd>
+              {'+'}
+              <Kbd>K</Kbd>
+            </>
           )}
         </InputGroupAddon>
       </InputGroup>
