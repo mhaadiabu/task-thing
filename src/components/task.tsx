@@ -7,6 +7,8 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
+import { useOptimistic, useTransition } from 'react';
+import { useViewTransition } from '@/hooks/useViewTransition';
 
 interface TasksProps {
   id: string;
@@ -18,6 +20,8 @@ interface TasksProps {
 
 export const Task = ({ id, userId, task, status, className }: TasksProps) => {
   const { setIsEditing } = useTaskContext();
+  const [, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(status);
 
   const toggleStatus = useMutation(
     trpc.updateTask.mutationOptions({
@@ -39,18 +43,37 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
     }),
   );
 
+  const handleToggle = () => {
+    startTransition(async () => {
+      const newStatus = optimisticStatus === 'completed' ? 'pending' : 'completed';
+      setOptimisticStatus(newStatus);
+      await toggleStatus.mutateAsync({ id, status });
+    });
+  };
+
+  const { startViewTransition } = useViewTransition();
+
+  const handleDelete = () => {
+    startViewTransition(async () => {
+      await deleteTask.mutateAsync({ id });
+    });
+  };
+
   return (
-    <div className={cn('flex gap-2 justify-between items-center', className)}>
+    <div 
+      className={cn('flex gap-2 justify-between items-center task-item', className)}
+      style={{ viewTransitionName: `task-${id}` }}
+    >
       <div className='flex gap-2 items-center justify-start'>
         <Checkbox
           id={`task-${id}`}
-          checked={status === 'completed'}
-          onCheckedChange={() => toggleStatus.mutate({ id, status })}
+          checked={optimisticStatus === 'completed'}
+          onCheckedChange={handleToggle}
         />
         <Label
           htmlFor={`task-${id}`}
           className={cn(
-            status === 'completed'
+            optimisticStatus === 'completed'
               ? 'line-through text-muted-foreground'
               : 'no-underline',
             'word-wrap',
@@ -67,7 +90,7 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
         <Button
           size='icon'
           variant='destructive'
-          onClick={() => deleteTask.mutate({ id })}
+          onClick={handleDelete}
         >
           <Trash2 />
         </Button>
