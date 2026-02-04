@@ -34,7 +34,7 @@ export const EditTask = ({ id, userId, task }: EditTaskProps) => {
   };
 
   return (
-    <div className='flex gap-2 justify-between items-center w-full mx-auto'>
+    <div className='flex gap-2 justify-between items-center w-full mx-auto py-2.5'>
       <div className='flex gap-2 items-center justify-start w-full'>
         <Input
           type='text'
