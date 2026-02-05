@@ -44,7 +44,7 @@ export const EditTask = ({ id, userId, task }: EditTaskProps) => {
               setEditedTask(e.target.value)
             }
             onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && e.ctrlKey) {
                 editTask();
               } else if (e.key === 'Escape') {
                 startTransition(() => setIsEditing(null));
