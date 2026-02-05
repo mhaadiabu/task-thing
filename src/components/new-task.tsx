@@ -5,7 +5,6 @@ import { useRef, useState, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
-import { TableRow } from './ui/table';
 
 interface Props {
   cancel: () => void;
@@ -49,7 +48,7 @@ export const NewTask = ({ cancel, userId }: Props) => {
 
   return (
     <ViewTransition enter='slide-up' exit='slide-down'>
-      <TableRow className='flex flex-col w-full mx-auto py-2 gap-2.5 items-end'>
+      <div className='flex flex-col w-full mx-auto py-2 gap-2.5 items-end'>
         <Textarea
           ref={inputRef}
           name='task'
@@ -72,7 +71,7 @@ export const NewTask = ({ cancel, userId }: Props) => {
             <Plus />
           </Button>
         </ButtonGroup>
-      </TableRow>
+      </div>
     </ViewTransition>
   );
 };
