@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
+import { startTransition, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
@@ -48,47 +49,49 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
     deleteTask.mutate({ id });
   };
 
-  return (
-    <TableBody
-      // className={cn(
-      //   'flex gap-2 justify-between items-center task-item py-2.5',
-      //   className,
-      // )}
-      // style={{ viewTransitionName: `task-${id}` }}
-    >
-      <TableRow className='flex gap-2 items-center justify-start'>
-        <TableCell>
-        <Checkbox
-          id={`task-${id}`}
-          checked={status === 'completed'}
-          onCheckedChange={handleToggle}
-        />
-        </TableCell>
-        <TableCell>
-        <Label
-          htmlFor={`task-${id}`}
-          className={cn(
-            status === 'completed'
-              ? 'line-through text-muted-foreground'
-              : 'no-underline',
-            'word-wrap',
-          )}
-        >
-          {task}
-          </Label>
-        </TableCell>
+  const handleEdit = () => {
+    startTransition(() => setIsEditing(id));
+  };
 
-        <TableCell>
-      <ButtonGroup>
-        <Button size='icon' onClick={() => setIsEditing(id)}>
-          <Edit3 />
-        </Button>
-        <Button size='icon' variant='destructive' onClick={handleDelete}>
-          <Trash2 />
-        </Button>
-      </ButtonGroup>
-        </TableCell>
-      </TableRow>
-    </TableBody>
+  return (
+    <ViewTransition
+      enter={status === 'completed' ? 'task-completed' : 'task-pending'}
+      update={status === 'completed' ? 'task-completed' : 'task-pending'}
+      exit='fade-only'
+    >
+      <TableBody>
+        <TableRow className='flex gap-2 items-center justify-start'>
+          <TableCell className='flex items-center justify-between'>
+            <div className='flex gap-2 items-start'>
+              <Checkbox
+                id={`task-${id}`}
+                checked={status === 'completed'}
+                onCheckedChange={handleToggle}
+              />
+              <Label
+                htmlFor={`task-${id}`}
+                className={cn(
+                  status === 'completed'
+                    ? 'line-through text-muted-foreground'
+                    : 'no-underline',
+                  'word-wrap',
+                )}
+              >
+                {task}
+              </Label>
+            </div>
+
+            <ButtonGroup>
+              <Button size='icon' onClick={handleEdit}>
+                <Edit3 />
+              </Button>
+              <Button size='icon' variant='destructive' onClick={handleDelete}>
+                <Trash2 />
+              </Button>
+            </ButtonGroup>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </ViewTransition>
   );
 };
