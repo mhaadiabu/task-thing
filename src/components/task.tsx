@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
+import { TableBody, TableCell, TableRow } from './ui/table';
 
 interface TasksProps {
   id: string;
@@ -16,7 +17,7 @@ interface TasksProps {
   className?: string;
 }
 
-export const Task = ({ id, userId, task, status, className }: TasksProps) => {
+export const Task = ({ id, userId, task, status }: TasksProps) => {
   const { setIsEditing } = useTaskContext();
 
   const toggleStatus = useMutation(
@@ -48,19 +49,22 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
   };
 
   return (
-    <div
-      className={cn(
-        'flex gap-2 justify-between items-center task-item py-2.5',
-        className,
-      )}
-      style={{ viewTransitionName: `task-${id}` }}
+    <TableBody
+      // className={cn(
+      //   'flex gap-2 justify-between items-center task-item py-2.5',
+      //   className,
+      // )}
+      // style={{ viewTransitionName: `task-${id}` }}
     >
-      <div className='flex gap-2 items-center justify-start'>
+      <TableRow className='flex gap-2 items-center justify-start'>
+        <TableCell>
         <Checkbox
           id={`task-${id}`}
           checked={status === 'completed'}
           onCheckedChange={handleToggle}
         />
+        </TableCell>
+        <TableCell>
         <Label
           htmlFor={`task-${id}`}
           className={cn(
@@ -71,9 +75,10 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
           )}
         >
           {task}
-        </Label>
-      </div>
+          </Label>
+        </TableCell>
 
+        <TableCell>
       <ButtonGroup>
         <Button size='icon' onClick={() => setIsEditing(id)}>
           <Edit3 />
@@ -82,6 +87,8 @@ export const Task = ({ id, userId, task, status, className }: TasksProps) => {
           <Trash2 />
         </Button>
       </ButtonGroup>
-    </div>
+        </TableCell>
+      </TableRow>
+    </TableBody>
   );
 };

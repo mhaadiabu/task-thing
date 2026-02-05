@@ -13,7 +13,7 @@ import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
 import { useMemo, useState, startTransition } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { EmptyTask } from '@/components/empty-task';
-import { Table } from '@/components/table';
+import { Table } from '@/components/ui/table';
 import type { TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
