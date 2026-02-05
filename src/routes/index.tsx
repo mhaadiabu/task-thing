@@ -10,9 +10,10 @@ import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, startTransition } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { EmptyTask } from '@/components/empty-task';
+import { Table } from '@/components/table';
 import type { TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
@@ -49,14 +50,14 @@ function App() {
 
   // Alt + T to toggle create task input
   useKeyboardShortcut({ key: 't', alt: true }, () => {
-    setShowTaskInput((prev) => !prev);
+    startTransition(() => setShowTaskInput((prev) => !prev));
   });
 
   // Escape to close create task input
   useKeyboardShortcut(
     { key: 'Escape' },
     () => {
-      setShowTaskInput(false);
+      startTransition(() => setShowTaskInput(false));
     },
     { enabled: showTaskInput },
   );
@@ -113,14 +114,18 @@ function App() {
             {filteredTasks && filteredTasks.length > 0 ? (
               filteredTasks.map((task) =>
                 isEditing === task.id ? (
-                  <EditTask
-                    key={task.id}
-                    id={task.id}
-                    userId={task.userId}
-                    task={task.task}
-                  />
+                  <Table>
+                    <EditTask
+                      key={task.id}
+                      id={task.id}
+                      userId={task.userId}
+                      task={task.task}
+                    />
+                  </Table>
                 ) : (
-                  <Task key={task.id} {...task} />
+                  <Table>
+                    <Task key={task.id} {...task} />
+                  </Table>
                 ),
               )
             ) : (
@@ -135,7 +140,7 @@ function App() {
                   ) : (
                     <EmptyTask
                       icon={<CircleMinus />}
-                      action={() => setShowTaskInput(true)}
+                      action={() => startTransition(() => setShowTaskInput(true))}
                       title='No Tasks Created'
                       description='You have not created any tasks yet. Click the button below to create your first task.
 '
@@ -149,11 +154,11 @@ function App() {
             {showTaskInput ? (
               <NewTask
                 userId={user?.id || ''}
-                cancel={() => setShowTaskInput(false)}
+                cancel={() => startTransition(() => setShowTaskInput(false))}
               />
             ) : (
               <Button
-                onClick={() => setShowTaskInput(true)}
+                onClick={() => startTransition(() => setShowTaskInput(true))}
                 className='fixed bottom-6 right-4 shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
               >
                 <Plus />
