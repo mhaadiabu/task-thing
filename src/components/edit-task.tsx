@@ -2,7 +2,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Check, X } from 'lucide-react';
-import { startTransition, useState, ViewTransition } from 'react';
+import { startTransition, useState } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
@@ -34,40 +34,38 @@ export const EditTask = ({ id, userId, task }: EditTaskProps) => {
   };
 
   return (
-    <ViewTransition enter='fade-in' exit='fade-out'>
-      <div className='flex gap-2 justify-between items-center w-full mx-auto py-2.5'>
-        <div className='flex gap-2 items-center justify-start w-full'>
-          <Textarea
-            name='edit-task'
-            value={editedTask}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setEditedTask(e.target.value)
+    <div className='flex gap-2 justify-between items-center w-full mx-auto py-2.5'>
+      <div className='flex gap-2 items-center justify-start w-full'>
+        <Textarea
+          name='edit-task'
+          value={editedTask}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            setEditedTask(e.target.value)
+          }
+          onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+              editTask();
+            } else if (e.key === 'Escape') {
+              startTransition(() => setIsEditing(null));
             }
-            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.key === 'Enter' && e.ctrlKey) {
-                editTask();
-              } else if (e.key === 'Escape') {
-                startTransition(() => setIsEditing(null));
-              }
-            }}
-            onBlur={() => startTransition(() => setIsEditing(null))}
-            autoFocus
-          />
-        </div>
-
-        <ButtonGroup>
-          <Button
-            variant='destructive'
-            size='icon'
-            onClick={() => startTransition(() => setIsEditing(null))}
-          >
-            <X />
-          </Button>
-          <Button size='icon' onClick={editTask}>
-            <Check />
-          </Button>
-        </ButtonGroup>
+          }}
+          onBlur={() => startTransition(() => setIsEditing(null))}
+          autoFocus
+        />
       </div>
-    </ViewTransition>
+
+      <ButtonGroup>
+        <Button
+          variant='destructive'
+          size='icon'
+          onClick={() => startTransition(() => setIsEditing(null))}
+        >
+          <X />
+        </Button>
+        <Button size='icon' onClick={editTask}>
+          <Check />
+        </Button>
+      </ButtonGroup>
+    </div>
   );
 };

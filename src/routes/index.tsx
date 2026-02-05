@@ -10,7 +10,7 @@ import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useMemo, useState, startTransition } from 'react';
+import { useMemo, useState, startTransition, ViewTransition } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { EmptyTask } from '@/components/empty-task';
 import { Table } from '@/components/ui/table';
@@ -112,22 +112,21 @@ function App() {
 
           <div className='flex flex-col w-full divide-y divide-border'>
             {filteredTasks && filteredTasks.length > 0 ? (
-              filteredTasks.map((task) =>
-                isEditing === task.id ? (
+              filteredTasks.map((task) => (
+                <ViewTransition key={task.id} default='fade-only'>
                   <Table>
-                    <EditTask
-                      key={task.id}
-                      id={task.id}
-                      userId={task.userId}
-                      task={task.task}
-                    />
+                    {isEditing === task.id ? (
+                      <EditTask
+                        id={task.id}
+                        userId={task.userId}
+                        task={task.task}
+                      />
+                    ) : (
+                      <Task {...task} />
+                    )}
                   </Table>
-                ) : (
-                  <Table>
-                    <Task key={task.id} {...task} />
-                  </Table>
-                ),
-              )
+                </ViewTransition>
+              ))
             ) : (
               <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
                 {!showTaskInput &&
