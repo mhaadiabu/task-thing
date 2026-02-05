@@ -1,7 +1,7 @@
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Input } from './ui/input';
@@ -47,6 +47,7 @@ export const NewTask = ({ cancel, userId }: Props) => {
   };
 
   return (
+    <ViewTransition enter='slide-up'>
     <div className='flex flex-col w-full mx-auto py-2 gap-2.5 items-end'>
       <Input
         ref={inputRef}
@@ -71,5 +72,6 @@ export const NewTask = ({ cancel, userId }: Props) => {
         </Button>
       </ButtonGroup>
     </div>
+    </ViewTransition>
   );
 };
