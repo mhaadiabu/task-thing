@@ -42,11 +42,15 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
   );
 
   const handleToggle = () => {
-    toggleStatus.mutate({ id, status });
+    startTransition(() => {
+      toggleStatus.mutate({ id, status });
+    });
   };
 
   const handleDelete = () => {
-    deleteTask.mutate({ id });
+    startTransition(() => {
+      deleteTask.mutate({ id });
+    });
   };
 
   const handleEdit = () => {
@@ -54,11 +58,7 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
   };
 
   return (
-    <ViewTransition
-      enter={status === 'completed' ? 'task-completed' : 'task-pending'}
-      update={status === 'completed' ? 'task-completed' : 'task-pending'}
-      exit='fade-only'
-    >
+    <ViewTransition default='fade-only'>
       <TableBody>
         <TableRow className='flex gap-2 items-center justify-between w-full py-2'>
           <div className='flex gap-2 items-start'>

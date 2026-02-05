@@ -318,29 +318,27 @@
   }
 }
 
-/* When a task is moving to completed */
-.task-completed {
-  view-transition-name: task-completed;
+::view-transition-group(.task-completed) {
+  animation-duration: 0.3s;
 }
 
-::view-transition-old(task-completed):only-child {
+::view-transition-old(.task-completed) {
   animation: 0.3s ease-in both slide-down-out;
 }
 
-::view-transition-new(task-completed):only-child {
+::view-transition-new(.task-completed) {
   animation: 0.3s ease-out both slide-up-in;
 }
 
-/* When a task is moving to pending */
-.task-pending {
-  view-transition-name: task-pending;
+::view-transition-group(.task-pending) {
+  animation-duration: 0.3s;
 }
 
-::view-transition-old(task-pending):only-child {
+::view-transition-old(.task-pending) {
   animation: 0.3s ease-in both slide-up-out;
 }
 
-::view-transition-new(task-pending):only-child {
+::view-transition-new(.task-pending) {
   animation: 0.3s ease-out both slide-down-in;
 }
 
