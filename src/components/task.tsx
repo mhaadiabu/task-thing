@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { TableBody, TableCell, TableRow } from './ui/table';
+import { TableBody, TableRow } from './ui/table';
 
 interface TasksProps {
   id: string;
@@ -60,36 +60,34 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
       exit='fade-only'
     >
       <TableBody>
-        <TableRow className='flex gap-2 items-center justify-start'>
-          <TableCell className='flex items-center justify-between'>
-            <div className='flex gap-2 items-start'>
-              <Checkbox
-                id={`task-${id}`}
-                checked={status === 'completed'}
-                onCheckedChange={handleToggle}
-              />
-              <Label
-                htmlFor={`task-${id}`}
-                className={cn(
-                  status === 'completed'
-                    ? 'line-through text-muted-foreground'
-                    : 'no-underline',
-                  'word-wrap',
-                )}
-              >
-                {task}
-              </Label>
-            </div>
+        <TableRow className='flex gap-2 items-center justify-between w-full'>
+          <div className='flex gap-2 items-start'>
+            <Checkbox
+              id={`task-${id}`}
+              checked={status === 'completed'}
+              onCheckedChange={handleToggle}
+            />
+            <Label
+              htmlFor={`task-${id}`}
+              className={cn(
+                status === 'completed'
+                  ? 'line-through text-muted-foreground'
+                  : 'no-underline',
+                'word-wrap',
+              )}
+            >
+              {task}
+            </Label>
+          </div>
 
-            <ButtonGroup>
-              <Button size='icon' onClick={handleEdit}>
-                <Edit3 />
-              </Button>
-              <Button size='icon' variant='destructive' onClick={handleDelete}>
-                <Trash2 />
-              </Button>
-            </ButtonGroup>
-          </TableCell>
+          <ButtonGroup>
+            <Button size='icon' onClick={handleEdit}>
+              <Edit3 />
+            </Button>
+            <Button size='icon' variant='destructive' onClick={handleDelete}>
+              <Trash2 />
+            </Button>
+          </ButtonGroup>
         </TableRow>
       </TableBody>
     </ViewTransition>
