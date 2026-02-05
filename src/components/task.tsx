@@ -60,7 +60,7 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
       exit='fade-only'
     >
       <TableBody>
-        <TableRow className='flex gap-2 items-center justify-between w-full'>
+        <TableRow className='flex gap-2 items-center justify-between w-full py-2'>
           <div className='flex gap-2 items-start'>
             <Checkbox
               id={`task-${id}`}
@@ -73,7 +73,7 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
                 status === 'completed'
                   ? 'line-through text-muted-foreground'
                   : 'no-underline',
-                'word-wrap',
+                'word-wrap whitespace-pre-wrap',
               )}
             >
               {task}
