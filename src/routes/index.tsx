@@ -1,8 +1,11 @@
-import { NewTask } from '@/components/new-task';
 import { EditTask } from '@/components/edit-task';
+import { EmptyTask } from '@/components/empty-task';
+import { NewTask } from '@/components/new-task';
 import { SearchTask } from '@/components/search-task';
 import { Task } from '@/components/task';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody } from '@/components/ui/table';
 import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
@@ -10,10 +13,7 @@ import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useMemo, useState, startTransition, ViewTransition } from 'react';
-import { Spinner } from '@/components/ui/spinner';
-import { EmptyTask } from '@/components/empty-task';
-import { Table } from '@/components/ui/table';
+import { startTransition, useMemo, useState } from 'react';
 import type { TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
@@ -112,9 +112,9 @@ function App() {
 
           <div className='flex flex-col w-full divide-y divide-border'>
             {filteredTasks && filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
-                <ViewTransition key={task.id} default='fade-only'>
-                  <Table>
+              <Table>
+                {filteredTasks.map((task) => (
+                  <TableBody key={task.id}>
                     {isEditing === task.id ? (
                       <EditTask
                         id={task.id}
@@ -124,9 +124,9 @@ function App() {
                     ) : (
                       <Task {...task} />
                     )}
-                  </Table>
-                </ViewTransition>
-              ))
+                  </TableBody>
+                ))}
+              </Table>
             ) : (
               <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
                 {!showTaskInput &&
@@ -139,7 +139,9 @@ function App() {
                   ) : (
                     <EmptyTask
                       icon={<CircleMinus />}
-                      action={() => startTransition(() => setShowTaskInput(true))}
+                      action={() =>
+                        startTransition(() => setShowTaskInput(true))
+                      }
                       title='No Tasks Created'
                       description='You have not created any tasks yet. Click the button below to create your first task.
 '
