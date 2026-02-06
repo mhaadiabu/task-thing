@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
-import { startTransition } from 'react';
+import { startTransition, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { TableBody, TableRow } from './ui/table';
+import { TableRow } from './ui/table';
 
 interface TasksProps {
   id: string;
@@ -58,36 +58,38 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
   };
 
   return (
-    <TableBody>
-      <TableRow className='flex gap-2 items-center justify-between w-full py-2'>
-        <div className='flex gap-2 items-start'>
-          <Checkbox
-            id={`task-${id}`}
-            checked={status === 'completed'}
-            onCheckedChange={handleToggle}
-          />
-          <Label
-            htmlFor={`task-${id}`}
-            className={cn(
-              status === 'completed'
-                ? 'line-through text-muted-foreground'
-                : 'no-underline',
-              'word-wrap whitespace-pre-wrap',
-            )}
-          >
-            {task}
-          </Label>
-        </div>
+    <>
+      <ViewTransition>
+        <TableRow className='flex gap-2 items-center justify-between w-full py-2'>
+          <div className='flex gap-2 items-start'>
+            <Checkbox
+              id={`task-${id}`}
+              checked={status === 'completed'}
+              onCheckedChange={handleToggle}
+            />
+            <Label
+              htmlFor={`task-${id}`}
+              className={cn(
+                status === 'completed'
+                  ? 'line-through text-muted-foreground'
+                  : 'no-underline',
+                'word-wrap whitespace-pre-wrap',
+              )}
+            >
+              {task}
+            </Label>
+          </div>
 
-        <ButtonGroup>
-          <Button size='icon' onClick={handleEdit}>
-            <Edit3 />
-          </Button>
-          <Button size='icon' variant='destructive' onClick={handleDelete}>
-            <Trash2 />
-          </Button>
-        </ButtonGroup>
-      </TableRow>
-    </TableBody>
+          <ButtonGroup>
+            <Button size='icon' onClick={handleEdit}>
+              <Edit3 />
+            </Button>
+            <Button size='icon' variant='destructive' onClick={handleDelete}>
+              <Trash2 />
+            </Button>
+          </ButtonGroup>
+        </TableRow>
+      </ViewTransition>
+    </>
   );
 };
