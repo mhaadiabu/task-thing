@@ -6,12 +6,13 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
 
-interface Props {
+export const NewTask = ({
+  cancel,
+  userId,
+}: {
   cancel: () => void;
   userId: string;
-}
-
-export const NewTask = ({ cancel, userId }: Props) => {
+}) => {
   const [taskItem, setTaskItem] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
