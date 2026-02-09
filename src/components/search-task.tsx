@@ -9,13 +9,15 @@ import {
 } from '@/components/ui/input-group';
 import { Kbd } from '@/components/ui/kbd';
 
-interface Props {
+export const SearchTask = ({
+  value,
+  onChange,
+  onClear,
+}: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClear: () => void;
-}
-
-export const SearchTask = ({ value, onChange, onClear }: Props) => {
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Cmd/Ctrl + K to focus search
