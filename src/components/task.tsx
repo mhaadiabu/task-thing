@@ -8,17 +8,19 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { TableRow } from './ui/table';
 
-interface TasksProps {
+export const Task = ({
+  id,
+  userId,
+  task,
+  status,
+}: {
   id: string;
   userId: string;
   task: string;
   status: 'pending' | 'completed';
   className?: string;
-}
-
-export const Task = ({ id, userId, task, status }: TasksProps) => {
+}) => {
   const { setIsEditing } = useTaskContext();
 
   const toggleStatus = useMutation(
@@ -58,38 +60,36 @@ export const Task = ({ id, userId, task, status }: TasksProps) => {
   };
 
   return (
-    <>
-      <ViewTransition>
-        <TableRow className='flex gap-2 items-center justify-between w-full py-2'>
-          <div className='flex gap-2 items-start'>
-            <Checkbox
-              id={`task-${id}`}
-              checked={status === 'completed'}
-              onCheckedChange={handleToggle}
-            />
-            <Label
-              htmlFor={`task-${id}`}
-              className={cn(
-                status === 'completed'
-                  ? 'line-through text-muted-foreground'
-                  : 'no-underline',
-                'word-wrap whitespace-pre-wrap',
-              )}
-            >
-              {task}
-            </Label>
-          </div>
+    <ViewTransition enter='slide-up' exit='scale-down'>
+      <div className='flex gap-2 items-center justify-between w-full py-2'>
+        <div className='flex gap-2 items-start'>
+          <Checkbox
+            id={`task-${id}`}
+            checked={status === 'completed'}
+            onCheckedChange={handleToggle}
+          />
+          <Label
+            htmlFor={`task-${id}`}
+            className={cn(
+              status === 'completed'
+                ? 'line-through text-muted-foreground'
+                : 'no-underline',
+              'word-wrap whitespace-pre-wrap',
+            )}
+          >
+            {task}
+          </Label>
+        </div>
 
-          <ButtonGroup>
-            <Button size='icon' onClick={handleEdit}>
-              <Edit3 />
-            </Button>
-            <Button size='icon' variant='destructive' onClick={handleDelete}>
-              <Trash2 />
-            </Button>
-          </ButtonGroup>
-        </TableRow>
-      </ViewTransition>
-    </>
+        <ButtonGroup>
+          <Button size='icon' onClick={handleEdit}>
+            <Edit3 />
+          </Button>
+          <Button size='icon' variant='destructive' onClick={handleDelete}>
+            <Trash2 />
+          </Button>
+        </ButtonGroup>
+      </div>
+    </ViewTransition>
   );
 };
