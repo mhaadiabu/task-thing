@@ -22,7 +22,7 @@ export const Route = createFileRoute('/')({
     if (!user) throw redirect({ to: '/auth/sign-in' });
     return { user };
   },
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
     const { user, queryClient } = context;
 
     const tasks = await queryClient.ensureQueryData(
