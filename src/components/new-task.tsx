@@ -48,7 +48,7 @@ export const NewTask = ({
   };
 
   return (
-    <ViewTransition enter='slide-up' exit='slide-down'>
+    <ViewTransition enter='slide-up' exit='slide-down' update='slide-down'>
       <div className='flex flex-col w-full mx-auto py-2 gap-2.5 items-end'>
         <Textarea
           ref={inputRef}
