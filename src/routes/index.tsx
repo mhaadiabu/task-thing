@@ -9,8 +9,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { trpc } from '@/utils/trpc';
-// import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
 import { startTransition, Suspense, useMemo, useState } from 'react';
 import type { TaskStatus } from '../types/task';
@@ -21,14 +20,16 @@ export const Route = createFileRoute('/')({
     const user = session?.user;
 
     if (!user) throw redirect({ to: '/auth/sign-in' });
-    return { user }
+    return { user };
   },
-  loader: (ctx) => {
-    const {user} = ctx.context;
-    
-    const tasks = trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user });
-      
-      return {tasks, user}
+  loader: ({ context }) => {
+    const { user, queryClient } = context;
+
+    const tasks = await queryClient.ensureQueryData(
+      trpc.getTasks.queryOptions({ userId: user.id }),
+    );
+
+    return { tasks, user };
   },
   component: App,
 });
@@ -44,24 +45,21 @@ const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
  */
 function App() {
   const { isEditing } = useTaskContext();
+  const navigate = useNavigate();
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
-  
+
   const { user, tasks } = Route.useLoaderData();
 
-  
-  const signOut = async () => await authClient.signOut({
-    fetchOptions: {
-      onSuccess: () => {
-        throw redirect({ to: '/auth/sign-in' })
-      }
-    }
-  })
-
-  // const { data: tasks } = useQuery(
-  //   trpc.getTasks.queryOptions({ userId: user?.id || '' }, { enabled: !!user }),
-  // );
+  const signOut = async () =>
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate({ to: '/auth/sign-in' });
+        },
+      },
+    });
 
   // Alt + T to toggle create task input
   useKeyboardShortcut({ key: 't', alt: true }, () => {
@@ -78,20 +76,17 @@ function App() {
   );
 
   const sortedTasks = useMemo(() => {
-      if (!tasks || !Array.isArray(tasks)) return [];
+    if (!tasks || !Array.isArray(tasks)) return [];
 
-      return [...tasks].sort((a, b) => {
-        const statusDiff =
-          STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
+    return [...tasks].sort((a, b) => {
+      const statusDiff =
+        STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
 
-        if (statusDiff !== 0) return statusDiff;
+      if (statusDiff !== 0) return statusDiff;
 
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-    }, [tasks]);
-  
-  // sort tasks on client side
-  
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [tasks]);
 
   const filteredTasks = sortedTasks?.filter(({ task }) =>
     task.toLowerCase().includes(search.toLowerCase()),
@@ -103,11 +98,7 @@ function App() {
         <div className='flex w-full justify-between items-center'>
           <h3 className='text-lg font-semibold capitalize text-left'>Tasks</h3>
 
-          <Button
-            variant='destructive'
-            size='sm'
-            onClick={signOut}
-          >
+          <Button variant='destructive' size='sm' onClick={signOut}>
             <LogOut />
             <span>Sign Out</span>
           </Button>
