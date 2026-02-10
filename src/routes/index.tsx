@@ -10,6 +10,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { trpc } from '@/utils/trpc';
 import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
 import { startTransition, Suspense, useMemo, useState } from 'react';
 import type { TaskStatus } from '../types/task';
@@ -50,7 +51,11 @@ function App() {
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { user, tasks } = Route.useLoaderData();
+  const { user } = Route.useLoaderData();
+
+  const { data: tasks } = useSuspenseQuery(
+     trpc.getTasks.queryOptions({ userId: user.id }),
+   );
 
   const signOut = async () =>
     await authClient.signOut({
