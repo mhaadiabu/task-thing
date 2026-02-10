@@ -16,8 +16,8 @@ import { startTransition, Suspense, useMemo, useState } from 'react';
 import type { TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
-  beforeLoad: () => {
-    const { data: session } = authClient.useSession();
+  beforeLoad: async () => {
+    const { data: session } = await authClient.getSession();
     const user = session?.user;
 
     if (!user) throw redirect({ to: '/auth/sign-in' });
