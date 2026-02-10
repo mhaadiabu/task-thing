@@ -37,7 +37,7 @@ export const EditTask = ({
 
   return (
     <ViewTransition enter='scale-up' exit='scale-down'>
-      <div className='flex flex-col gap-2 justify-center items-center w-full mx-auto py-2.5'>
+      <div className='flex flex-col gap-2 justify-center items-end w-full mx-auto py-2.5'>
         <Textarea
           name='edit-task'
           value={editedTask}
