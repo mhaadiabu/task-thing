@@ -12,8 +12,8 @@ import { trpc } from "@/utils/trpc";
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CircleMinus, LogOut, Plus, SearchX } from "lucide-react";
-import { startTransition, Suspense, useMemo, useOptimistic, useState } from "react";
-import type { Task as TaskTypes, TasksList, TaskStatus } from "../types/task";
+import { startTransition, Suspense, useMemo, useState } from "react";
+import type { TaskStatus } from "../types/task";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -35,16 +35,8 @@ export const Route = createFileRoute("/")({
 
 const STATUS_ORDER: Array<TaskStatus> = ["pending", "completed"];
 
-type OptimisticAction =
-  | { type: 'add'; task: TaskTypes }
-  | { type: 'delete'; id: string };
-
 /**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
- *
- * Redirects unauthenticated users to "/auth/sign-in" when authentication is not loading, shows a loading indicator while auth/data load, filters displayed tasks by the search input, and provides keyboard shortcuts (Alt+T toggles the create-task input; Escape closes it).
- *
- * @returns The root JSX element for the tasks application UI
  */
 function App() {
   const { isEditing } = useTaskContext();
@@ -56,31 +48,6 @@ function App() {
   const { user } = Route.useRouteContext();
 
   const { data: tasks } = useSuspenseQuery(trpc.getTasks.queryOptions({ userId: user.id }));
-
-  const [optimisticTasks, dispatchOptimistic] = useOptimistic(
-    tasks,
-    (state: TasksList, action: OptimisticAction) => {
-      if (action.type === 'add') return [...state, { ...action.task, status: 'pending' as const }];
-      if (action.type === 'delete') return state.filter((t) => t.id !== action.id);
-      return state;
-    },
-  );
-
-  const addOptimisticTask = (task: string) =>
-    dispatchOptimistic({
-      type: 'add',
-      task: {
-        id: crypto.randomUUID(),
-        userId: user.id,
-        task,
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-
-  const deleteOptimisticTask = (id: string) =>
-    dispatchOptimistic({ type: 'delete', id });
 
   const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.disabled = true;
@@ -115,15 +82,15 @@ function App() {
 
   const sortedTasks = useMemo(
     () =>
-      [...optimisticTasks].sort(
+      [...tasks].sort(
         (a, b) =>
           STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
           toMs(b.createdAt) - toMs(a.createdAt),
       ),
-    [optimisticTasks],
+    [tasks],
   );
 
-  const filteredTasks = sortedTasks?.filter(({ task }) =>
+  const filteredTasks = sortedTasks.filter(({ task }) =>
     task.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -157,7 +124,7 @@ function App() {
                       <EditTask id={task.id} userId={task.userId} task={task.task} />
                     ) : (
                       <Suspense fallback={<div>Loading...</div>}>
-                        <Task {...task} onOptimisticDelete={deleteOptimisticTask} />
+                        <Task {...task} />
                       </Suspense>
                     )}
                   </TableRow>
@@ -178,8 +145,7 @@ function App() {
                     icon={<CircleMinus />}
                     action={() => startTransition(() => setShowTaskInput(true))}
                     title="No Tasks Created"
-                    description="You have not created any tasks yet. Click the button below to create your first task.
-"
+                    description="You have not created any tasks yet. Click the button below to create your first task."
                   />
                 ))}
             </div>
@@ -190,7 +156,6 @@ function App() {
           {showTaskInput ? (
             <NewTask
               userId={user?.id || ""}
-              onOptimisticAdd={addOptimisticTask}
               onCancel={() => startTransition(() => setShowTaskInput(false))}
             />
           ) : (
