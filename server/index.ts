@@ -108,9 +108,8 @@ const appRouter = router({
     )
     .mutation(async (opts) => {
       const { id, status } = opts.input;
-      const nextStatus = status === 'pending' ? 'completed' : 'pending';
       const { error } = await tryCatch(
-        db.update(tasks).set({ status: nextStatus }).where(eq(tasks.id, id)),
+        db.update(tasks).set({ status }).where(eq(tasks.id, id)),
       );
       if (error) {
         console.error('updateTask error:', error);

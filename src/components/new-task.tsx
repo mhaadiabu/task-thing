@@ -56,9 +56,11 @@ export const NewTask = ({
           value={taskItem}
           placeholder='Add a new task...'
           onChange={handleChange}
-          onKeyDown={(e) =>
-            (e.key === 'Enter' || e.key === 'Return') && createTask()
-          }
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === 'Return') {
+              createTask();
+            }
+          }}
           aria-invalid='false'
           rows={1}
           autoFocus
