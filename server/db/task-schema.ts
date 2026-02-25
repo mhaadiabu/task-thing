@@ -26,6 +26,6 @@ export const tasks = pgTable(
       .notNull(),
   },
   (table) => [
-    index('status_cratedAt_idx').on(table.status, table.createdAt.desc()),
+    index('status_updatedAt_idx').on(table.status, table.updatedAt.desc()),
   ],
 );

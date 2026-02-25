@@ -64,6 +64,13 @@
       "when": 1770163763212,
       "tag": "0008_little_exiles",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1772060043380,
+      "tag": "0009_ambiguous_prism",
+      "breakpoints": true
     }
   ]
 }
