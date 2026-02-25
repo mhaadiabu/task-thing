@@ -3,60 +3,77 @@ import { cn } from '@/lib/utils';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
-import { startTransition, useOptimistic, ViewTransition } from 'react';
+import { startTransition, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
+
+type TaskRow = { userId: string; task: string; id: string; status: 'pending' | 'completed'; createdAt: string; updatedAt: string };
+type TasksData = TaskRow[] | undefined;
 
 export const Task = ({
   id,
   userId,
   task,
   status,
-  onOptimisticDelete,
 }: {
   id: string;
   userId: string;
   task: string;
   status: 'pending' | 'completed';
   className?: string;
-  onOptimisticDelete: (id: string) => void;
 }) => {
   const { setIsEditing } = useTaskContext();
-  const [optimisticStatus, setOptimisticStatus] = useOptimistic(status);
+  const queryKey = trpc.getTasks.queryKey({ userId });
 
   const toggleStatus = useMutation(
     trpc.updateTask.mutationOptions({
+      onMutate: async ({ status: newStatus }) => {
+        await queryClient.cancelQueries({ queryKey });
+        const previous = queryClient.getQueryData(queryKey);
+        queryClient.setQueryData(queryKey, (old: TasksData) =>
+          old?.map((t) => (t.id === id ? { ...t, status: newStatus } : t)),
+        );
+        return { previous };
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
+      },
       onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getTasks.queryKey({ userId }),
-        });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
 
   const deleteTask = useMutation(
     trpc.deleteTask.mutationOptions({
+      onMutate: async () => {
+        await queryClient.cancelQueries({ queryKey });
+        const previous = queryClient.getQueryData(queryKey);
+        queryClient.setQueryData(queryKey, (old: TasksData) =>
+          old?.filter((t) => t.id !== id),
+        );
+        return { previous };
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
+      },
       onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getTasks.queryKey({ userId }),
-        });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
 
   const handleToggle = () => {
-    const newStatus = optimisticStatus === 'pending' ? 'completed' : 'pending';
+    const newStatus = status === 'pending' ? 'completed' : 'pending';
     startTransition(() => {
-      setOptimisticStatus(newStatus);
       toggleStatus.mutate({ id, status: newStatus });
     });
   };
 
   const handleDelete = () => {
     startTransition(() => {
-      onOptimisticDelete(id);
       deleteTask.mutate({ id });
     });
   };
@@ -71,13 +88,13 @@ export const Task = ({
         <div className='flex gap-2 items-start'>
           <Checkbox
             id={`task-${id}`}
-            checked={optimisticStatus === 'completed'}
+            checked={status === 'completed'}
             onCheckedChange={handleToggle}
           />
           <Label
             htmlFor={`task-${id}`}
             className={cn(
-              optimisticStatus === 'completed'
+              status === 'completed'
                 ? 'line-through text-muted-foreground'
                 : 'no-underline',
               'word-wrap whitespace-pre-wrap',

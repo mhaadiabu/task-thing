@@ -3,28 +3,45 @@ import { useMutation } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useRef, useState, ViewTransition } from "react";
 import { tryCatch } from "../lib/utils/try-catch";
+import type { TasksList } from "../types/task";
 import { Button } from "./ui/button";
 import { ButtonGroup } from "./ui/button-group";
 import { Textarea } from "./ui/textarea";
 
 export const NewTask = ({
   onCancel,
-  onOptimisticAdd,
   userId,
 }: {
   onCancel: () => void;
-  onOptimisticAdd: (task: string) => void;
   userId: string;
 }) => {
   const [task, setTask] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const queryKey = trpc.getTasks.queryKey({ userId });
 
   const newTask = useMutation(
     trpc.createTask.mutationOptions({
+      onMutate: async ({ task: taskText }) => {
+        await queryClient.cancelQueries({ queryKey });
+        const previous = queryClient.getQueryData<TasksList>(queryKey);
+        queryClient.setQueryData<TasksList>(queryKey, (old) => [
+          ...(old ?? []),
+          {
+            id: crypto.randomUUID(),
+            userId,
+            task: taskText,
+            status: 'pending' as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]);
+        return { previous };
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
+      },
       onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getTasks.queryKey({ userId }),
-        });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
@@ -38,7 +55,6 @@ export const NewTask = ({
     }
 
     const trimmed = task.trim();
-    onOptimisticAdd(trimmed);
     setTask("");
     onCancel();
 
@@ -63,7 +79,7 @@ export const NewTask = ({
           placeholder="Add a new task..."
           onChange={handleChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === "Return") {
+            if (e.key === "Enter") {
               createTask();
             }
           }}
