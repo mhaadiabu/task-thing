@@ -1,41 +1,43 @@
-import { EditTask } from '@/components/edit-task';
-import { EmptyTask } from '@/components/empty-task';
-import { NewTask } from '@/components/new-task';
-import { SearchTask } from '@/components/search-task';
-import { Task } from '@/components/task';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableRow } from '@/components/ui/table';
-import { useTaskContext } from '@/context/TaskContext';
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import { authClient } from '@/lib/auth-client';
-import { trpc } from '@/utils/trpc';
-import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { startTransition, Suspense, useMemo, useState } from 'react';
-import type { TaskStatus } from '../types/task';
+import { EditTask } from "@/components/edit-task";
+import { EmptyTask } from "@/components/empty-task";
+import { NewTask } from "@/components/new-task";
+import { SearchTask } from "@/components/search-task";
+import { Task } from "@/components/task";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableRow } from "@/components/ui/table";
+import { useTaskContext } from "@/context/TaskContext";
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
+import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/utils/trpc";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { CircleMinus, LogOut, Plus, SearchX } from "lucide-react";
+import { startTransition, Suspense, useMemo, useOptimistic, useState } from "react";
+import type { Task as TaskTypes, TasksList, TaskStatus } from "../types/task";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession();
     const user = session?.user;
 
-    if (!user) throw redirect({ to: '/auth/sign-in' });
+    if (!user) throw redirect({ to: "/auth/sign-in" });
     return { user };
   },
-  loader: async ({ context }) => {
-    const { user, queryClient } = context;
-
+  loader: async ({ context: { user, queryClient } }) => {
     const tasks = await queryClient.ensureQueryData(
       trpc.getTasks.queryOptions({ userId: user.id }),
     );
 
-    return { tasks, user };
+    return { tasks };
   },
   component: App,
 });
 
-const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
+const STATUS_ORDER: Array<TaskStatus> = ["pending", "completed"];
+
+type OptimisticAction =
+  | { type: 'add'; task: TaskTypes }
+  | { type: 'delete'; id: string };
 
 /**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
@@ -49,89 +51,113 @@ function App() {
   const navigate = useNavigate();
 
   const [showTaskInput, setShowTaskInput] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
-  const { user } = Route.useLoaderData();
+  const { user } = Route.useRouteContext();
 
-  const { data: tasks } = useSuspenseQuery(
-     trpc.getTasks.queryOptions({ userId: user.id }),
-   );
+  const { data: tasks } = useSuspenseQuery(trpc.getTasks.queryOptions({ userId: user.id }));
 
-  const signOut = async () =>
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          navigate({ to: '/auth/sign-in' });
-        },
+  const [optimisticTasks, dispatchOptimistic] = useOptimistic(
+    tasks,
+    (state: TasksList, action: OptimisticAction) => {
+      if (action.type === 'add') return [...state, { ...action.task, status: 'pending' as const }];
+      if (action.type === 'delete') return state.filter((t) => t.id !== action.id);
+      return state;
+    },
+  );
+
+  const addOptimisticTask = (task: string) =>
+    dispatchOptimistic({
+      type: 'add',
+      task: {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        task,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
+  const deleteOptimisticTask = (id: string) =>
+    dispatchOptimistic({ type: 'delete', id });
+
+  const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.disabled = true;
+
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate({ to: "/auth/sign-in" });
+        },
+        onError: () => {
+          e.currentTarget.disabled = false;
+        },
+      },
+    });
+  };
+
   // Alt + T to toggle create task input
-  useKeyboardShortcut({ key: 't', alt: true }, () => {
+  useKeyboardShortcut({ key: "t", alt: true }, () => {
     startTransition(() => setShowTaskInput((prev) => !prev));
   });
 
   // Escape to close create task input
   useKeyboardShortcut(
-    { key: 'Escape' },
+    { key: "Escape" },
     () => {
       startTransition(() => setShowTaskInput(false));
     },
     { enabled: showTaskInput },
   );
 
-  const sortedTasks = useMemo(() => {
-    if (!tasks || !Array.isArray(tasks)) return [];
+  const toMs = (d: string | Date | null) => (d ? new Date(d).getTime() : 0);
 
-    return [...tasks].sort((a, b) => {
-      const statusDiff =
-        STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
-
-      if (statusDiff !== 0) return statusDiff;
-
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [tasks]);
+  const sortedTasks = useMemo(
+    () =>
+      [...optimisticTasks].sort(
+        (a, b) =>
+          STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
+          toMs(b.createdAt) - toMs(a.createdAt),
+      ),
+    [optimisticTasks],
+  );
 
   const filteredTasks = sortedTasks?.filter(({ task }) =>
     task.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <main className='bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 text-base dark'>
-      <div className='flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none'>
-        <div className='flex w-full justify-between items-center'>
-          <h3 className='text-lg font-semibold capitalize text-left'>Tasks</h3>
+    <main className="bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 text-base dark">
+      <div className="flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none">
+        <div className="flex w-full justify-between items-center">
+          <h3 className="text-lg font-semibold capitalize text-left">Tasks</h3>
 
-          <Button variant='destructive' size='sm' onClick={signOut}>
+          <Button variant="destructive" size="sm" onClick={signOut}>
             <LogOut />
             <span>Sign Out</span>
           </Button>
         </div>
 
-        <div className='flex w-full items-center gap-2 mt-4'>
+        <div className="flex w-full items-center gap-2 mt-4">
           <SearchTask
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onClear={() => setSearch('')}
+            onClear={() => setSearch("")}
           />
         </div>
 
-        <div className='flex flex-col w-full divide-y divide-border'>
+        <div className="flex flex-col w-full divide-y divide-border">
           {filteredTasks && filteredTasks.length > 0 ? (
             <Table>
               <TableBody>
                 {filteredTasks.map((task) => (
                   <TableRow key={task.id}>
                     {isEditing === task.id ? (
-                      <EditTask
-                        id={task.id}
-                        userId={task.userId}
-                        task={task.task}
-                      />
+                      <EditTask id={task.id} userId={task.userId} task={task.task} />
                     ) : (
                       <Suspense fallback={<div>Loading...</div>}>
-                        <Task {...task} />
+                        <Task {...task} onOptimisticDelete={deleteOptimisticTask} />
                       </Suspense>
                     )}
                   </TableRow>
@@ -139,21 +165,21 @@ function App() {
               </TableBody>
             </Table>
           ) : (
-            <div className='w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground'>
+            <div className="w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground">
               {!showTaskInput &&
                 (search ? (
                   <EmptyTask
                     icon={<SearchX />}
-                    title='Task Not Found'
-                    description='Try searching for something else'
+                    title="Task Not Found"
+                    description="Try searching for something else"
                   />
                 ) : (
                   <EmptyTask
                     icon={<CircleMinus />}
                     action={() => startTransition(() => setShowTaskInput(true))}
-                    title='No Tasks Created'
-                    description='You have not created any tasks yet. Click the button below to create your first task.
-'
+                    title="No Tasks Created"
+                    description="You have not created any tasks yet. Click the button below to create your first task.
+"
                   />
                 ))}
             </div>
@@ -163,17 +189,20 @@ function App() {
         <div>
           {showTaskInput ? (
             <NewTask
-              userId={user?.id || ''}
-              cancel={() => startTransition(() => setShowTaskInput(false))}
+              userId={user?.id || ""}
+              onOptimisticAdd={addOptimisticTask}
+              onCancel={() => startTransition(() => setShowTaskInput(false))}
             />
           ) : (
-            <Button
-              onClick={() => startTransition(() => setShowTaskInput(true))}
-              className='fixed bottom-6 right-4 shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35'
-            >
-              <Plus />
-              <span className='max-md:hidden'>New Task</span>
-            </Button>
+            !isEditing && (
+              <Button
+                onClick={() => startTransition(() => setShowTaskInput(true))}
+                className="fixed bottom-6 right-4 shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35"
+              >
+                <Plus />
+                <span className="max-md:hidden">New Task</span>
+              </Button>
+            )
           )}
         </div>
       </div>
