@@ -1,8 +1,8 @@
-import { createContext, useContext, type SetStateAction } from 'react';
+import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
 
 interface TaskContextType {
   isEditing: string | null;
-  setIsEditing: React.Dispatch<SetStateAction<string | null>>;
+  setIsEditing: Dispatch<SetStateAction<string | null>>;
 }
 
 export const TaskContext = createContext<TaskContextType | undefined>(

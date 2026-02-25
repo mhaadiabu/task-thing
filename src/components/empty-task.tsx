@@ -29,7 +29,7 @@ export const EmptyTask = ({
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        {title === 'No Tasks Created' && (
+        {action && (
           <Button size='sm' onClick={action}>
             <Plus />
             Create Task
