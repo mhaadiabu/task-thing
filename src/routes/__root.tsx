@@ -14,9 +14,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 /**
- * Provides the application's root UI tree with React Query and task contexts and renders nested route content.
- *
- * @returns The root React element containing a QueryClientProvider (using `queryClient`), a TaskProvider, and an Outlet for nested routes.
+ * Root layout. Wraps all routes with TaskProvider and renders nested route content.
  */
 function RootComponent() {
   return (

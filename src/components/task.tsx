@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
-import { startTransition, ViewTransition } from 'react';
+import { startTransition, useOptimistic, ViewTransition } from 'react';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
@@ -14,14 +14,17 @@ export const Task = ({
   userId,
   task,
   status,
+  onOptimisticDelete,
 }: {
   id: string;
   userId: string;
   task: string;
   status: 'pending' | 'completed';
   className?: string;
+  onOptimisticDelete: (id: string) => void;
 }) => {
   const { setIsEditing } = useTaskContext();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(status);
 
   const toggleStatus = useMutation(
     trpc.updateTask.mutationOptions({
@@ -44,13 +47,16 @@ export const Task = ({
   );
 
   const handleToggle = () => {
+    const newStatus = optimisticStatus === 'pending' ? 'completed' : 'pending';
     startTransition(() => {
-      toggleStatus.mutate({ id, status });
+      setOptimisticStatus(newStatus);
+      toggleStatus.mutate({ id, status: newStatus });
     });
   };
 
   const handleDelete = () => {
     startTransition(() => {
+      onOptimisticDelete(id);
       deleteTask.mutate({ id });
     });
   };
@@ -65,13 +71,13 @@ export const Task = ({
         <div className='flex gap-2 items-start'>
           <Checkbox
             id={`task-${id}`}
-            checked={status === 'completed'}
+            checked={optimisticStatus === 'completed'}
             onCheckedChange={handleToggle}
           />
           <Label
             htmlFor={`task-${id}`}
             className={cn(
-              status === 'completed'
+              optimisticStatus === 'completed'
                 ? 'line-through text-muted-foreground'
                 : 'no-underline',
               'word-wrap whitespace-pre-wrap',
