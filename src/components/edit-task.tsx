@@ -30,7 +30,10 @@ export const EditTask = ({
     }),
   );
 
+  const cancel = () => startTransition(() => setIsEditing(null));
+
   const editTask = () => {
+    if (!editedTask.trim()) return;
     edit.mutate({ id, task: editedTask.trim() });
     startTransition(() => setIsEditing(null));
   };
@@ -45,16 +48,12 @@ export const EditTask = ({
             setEditedTask(e.target.value)
           }
           onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-            if (
-              (e.key === 'Enter' && e.ctrlKey) ||
-              (e.key === 'Return' && e.ctrlKey)
-            ) {
+            if (e.key === 'Enter' && e.ctrlKey) {
               editTask();
             } else if (e.key === 'Escape') {
-              startTransition(() => setIsEditing(null));
+              cancel();
             }
           }}
-          onBlur={() => startTransition(() => setIsEditing(null))}
           autoFocus
         />
 
@@ -62,11 +61,16 @@ export const EditTask = ({
           <Button
             variant='destructive'
             size='icon'
-            onClick={() => startTransition(() => setIsEditing(null))}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={cancel}
           >
             <X />
           </Button>
-          <Button size='icon' onClick={editTask}>
+          <Button
+            size='icon'
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={editTask}
+          >
             <Check />
           </Button>
         </ButtonGroup>
