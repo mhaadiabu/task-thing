@@ -20,7 +20,11 @@ export function useViewTransition(): UseViewTransition {
 
     isTransitioning.current = true;
 
-    const transition = (document as Document & { startViewTransition: (callback: () => void | Promise<void>) => ViewTransition }).startViewTransition(async () => {
+    const transition = (
+      document as Document & {
+        startViewTransition: (callback: () => void | Promise<void>) => ViewTransition;
+      }
+    ).startViewTransition(async () => {
       await callback();
     });
 
