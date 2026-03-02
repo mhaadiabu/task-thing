@@ -2,7 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createRouter as createTanstackRouter } from '@tanstack/react-router';
 
 import { routeTree } from './routeTree.gen';
-import { queryClient, trpc } from './utils/trpc';
+import { queryClient, api } from './utils/trpc';
 
 export function createRouter() {
   const router = createTanstackRouter({
@@ -10,7 +10,7 @@ export function createRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     context: {
-      trpc,
+      trpc: api,
       queryClient,
     },
     Wrap: function WrapComponent({ children }) {
