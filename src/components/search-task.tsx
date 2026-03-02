@@ -1,13 +1,11 @@
 import { Search, X } from 'lucide-react';
-import { Button } from './ui/button';
 import { useRef } from 'react';
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Kbd } from '@/components/ui/kbd';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
+
+import { Button } from './ui/button';
 
 export const SearchTask = ({
   value,
@@ -26,7 +24,7 @@ export const SearchTask = ({
   });
 
   return (
-    <div className='w-full top-0 sticky z-10'>
+    <div className='sticky top-0 z-10 w-full'>
       <InputGroup>
         <InputGroupInput
           placeholder='Search task'
@@ -39,12 +37,7 @@ export const SearchTask = ({
         </InputGroupAddon>
         <InputGroupAddon align='inline-end'>
           {value.length > 0 ? (
-            <Button
-              size='icon-sm'
-              variant='ghost'
-              onClick={onClear}
-              className='p-px'
-            >
+            <Button size='icon-sm' variant='ghost' onClick={onClear} className='p-px'>
               <X />
             </Button>
           ) : (
