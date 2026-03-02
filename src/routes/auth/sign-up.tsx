@@ -1,10 +1,11 @@
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { authClient } from '@/lib/auth-client';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 
 export const Route = createFileRoute('/auth/sign-up')({
   component: SignUpPage,
@@ -63,22 +64,20 @@ function SignUpPage() {
   };
 
   return (
-    <div className='space-y-6 w-full'>
+    <div className='w-full space-y-6'>
       <div className='space-y-2 text-center'>
         <h1 className='text-3xl font-bold'>Create Account</h1>
-        <p className='text-muted-foreground'>
-          Enter your information to get started
-        </p>
+        <p className='text-muted-foreground'>Enter your information to get started</p>
       </div>
 
       {errorMessage && (
-        <div className='p-3 rounded-md bg-destructive/10 border border-destructive/20'>
+        <div className='rounded-md border border-destructive/20 bg-destructive/10 p-3'>
           <p className='text-sm text-destructive'>{errorMessage}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className='p-3 rounded-md bg-green-100 border border-green-200'>
+        <div className='rounded-md border border-green-200 bg-green-100 p-3'>
           <p className='text-sm text-green-800'>{successMessage}</p>
         </div>
       )}
@@ -125,9 +124,7 @@ function SignUpPage() {
             onChange={handleChange}
             disabled={isLoading}
           />
-          <p className='text-xs text-muted-foreground'>
-            Must be at least 8 characters long
-          </p>
+          <p className='text-xs text-muted-foreground'>Must be at least 8 characters long</p>
         </div>
 
         <Button type='submit' className='w-full' disabled={isLoading}>
@@ -144,10 +141,7 @@ function SignUpPage() {
 
       <div className='text-center text-sm'>
         <span className='text-muted-foreground'>Already have an account? </span>
-        <Link
-          to='/auth/sign-in'
-          className='text-primary hover:underline font-medium'
-        >
+        <Link to='/auth/sign-in' className='font-medium text-primary hover:underline'>
           Sign in
         </Link>
       </div>

@@ -6,8 +6,8 @@ export const Route = createFileRoute('/auth')({
 
 function AuthLayout() {
   return (
-    <div className='min-h-screen bg-background text-foreground flex items-center justify-center'>
-      <div className='w-full h-screen max-w-md flex justify-center items-center px-4'>
+    <div className='flex min-h-screen items-center justify-center bg-background text-foreground'>
+      <div className='flex h-screen w-full max-w-md items-center justify-center px-4'>
         <Outlet />
       </div>
     </div>

@@ -1,7 +1,11 @@
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import TaskProvider from '@/components/TaskProvider';
 import type { QueryClient } from '@tanstack/react-query';
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
+
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
+
+import TaskProvider from '@/components/TaskProvider';
+import { Toaster } from '@/components/ui/sonner';
+
 import type { AppRouter } from '../../server';
 
 export interface RouterAppContext {
@@ -20,6 +24,7 @@ function RootComponent() {
   return (
     <TaskProvider>
       <Outlet />
+      <Toaster position='bottom-right' richColors />
     </TaskProvider>
   );
 }
