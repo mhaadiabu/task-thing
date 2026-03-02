@@ -1,29 +1,31 @@
-import { EditTask } from "@/components/edit-task";
-import { EmptyTask } from "@/components/empty-task";
-import { LoadingScreen } from "@/components/loading-screen";
-import { NewTask } from "@/components/new-task";
-import { SearchTask } from "@/components/search-task";
-import { Task } from "@/components/task";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableRow } from "@/components/ui/table";
-import { useTaskContext } from "@/context/TaskContext";
-import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
-import { authClient } from "@/lib/auth-client";
-import { api } from "@/utils/trpc";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { CircleMinus, LogOut, Plus, SearchX } from "lucide-react";
-import { startTransition, Suspense, useMemo, useOptimistic, useState } from "react";
-import type { Task as TaskTypes, TaskStatus } from "../types/task";
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
+import { startTransition, Suspense, useMemo, useOptimistic, useState } from 'react';
 
-type Tasks = Omit<TaskTypes, "updatedAt">;
+import { EditTask } from '@/components/edit-task';
+import { EmptyTask } from '@/components/empty-task';
+import { LoadingScreen } from '@/components/loading-screen';
+import { NewTask } from '@/components/new-task';
+import { SearchTask } from '@/components/search-task';
+import { Task } from '@/components/task';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableRow } from '@/components/ui/table';
+import { useTaskContext } from '@/context/TaskContext';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
+import { authClient } from '@/lib/auth-client';
+import { api } from '@/utils/trpc';
 
-export const Route = createFileRoute("/")({
+import type { Task as TaskTypes, TaskStatus } from '../types/task';
+
+type Tasks = Omit<TaskTypes, 'updatedAt'>;
+
+export const Route = createFileRoute('/')({
   beforeLoad: async () => {
     const { data: session } = await authClient.getSession();
     const user = session?.user;
 
-    if (!user) throw redirect({ to: "/auth/sign-in" });
+    if (!user) throw redirect({ to: '/auth/sign-in' });
     return { user };
   },
   loader: async ({ context: { user, queryClient } }) => {
@@ -34,7 +36,7 @@ export const Route = createFileRoute("/")({
   component: App,
 });
 
-const STATUS_ORDER: Array<TaskStatus> = ["pending", "completed"];
+const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
 
 /**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
@@ -48,7 +50,7 @@ function App() {
   const isSessionLoading = authClient.useSession().isPending;
 
   const [showTaskInput, setShowTaskInput] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
 
   const [optimisticTask, addOptimisticTask] = useOptimistic(
     tasks.map((task) => task as Tasks),
@@ -61,7 +63,7 @@ function App() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          navigate({ to: "/auth/sign-in" });
+          navigate({ to: '/auth/sign-in' });
         },
         onError: () => {
           e.currentTarget.disabled = false;
@@ -71,13 +73,13 @@ function App() {
   };
 
   // Alt + T to toggle create task input
-  useKeyboardShortcut({ key: "t", alt: true }, () => {
+  useKeyboardShortcut({ key: 't', alt: true }, () => {
     startTransition(() => setShowTaskInput((prev) => !prev));
   });
 
   // Escape to close create task input
   useKeyboardShortcut(
-    { key: "Escape" },
+    { key: 'Escape' },
     () => {
       startTransition(() => setShowTaskInput(false));
     },
@@ -103,26 +105,26 @@ function App() {
   if (isSessionLoading) return <LoadingScreen />;
 
   return (
-    <main className="bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 text-base dark">
-      <div className="flex flex-col max-w-5xl mx-auto py-4 sm:py-6 overflow-none">
-        <div className="flex w-full justify-between items-center">
-          <h3 className="text-lg font-semibold capitalize text-left">Tasks</h3>
+    <main className='dark min-h-screen w-full bg-background px-4 py-7 text-base font-medium text-foreground'>
+      <div className='overflow-none mx-auto flex max-w-5xl flex-col py-4 sm:py-6'>
+        <div className='flex w-full items-center justify-between'>
+          <h3 className='text-left text-lg font-semibold capitalize'>Tasks</h3>
 
-          <Button variant="destructive" size="sm" onClick={signOut}>
+          <Button variant='destructive' size='sm' onClick={signOut}>
             <LogOut />
             <span>Sign Out</span>
           </Button>
         </div>
 
-        <div className="flex w-full items-center gap-2 mt-4">
+        <div className='mt-4 flex w-full items-center gap-2'>
           <SearchTask
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onClear={() => setSearch("")}
+            onClear={() => setSearch('')}
           />
         </div>
 
-        <div className="flex flex-col w-full divide-y divide-border">
+        <div className='flex w-full flex-col divide-y divide-border'>
           {filteredTasks && filteredTasks.length > 0 ? (
             <Table>
               <TableBody>
@@ -140,20 +142,20 @@ function App() {
               </TableBody>
             </Table>
           ) : (
-            <div className="w-full h-full flex flex-col justify-center items-center gap-4 text-muted-foreground">
+            <div className='flex h-full w-full flex-col items-center justify-center gap-4 text-muted-foreground'>
               {!showTaskInput &&
                 (search ? (
                   <EmptyTask
                     icon={<SearchX />}
-                    title="Task Not Found"
-                    description="Try searching for something else"
+                    title='Task Not Found'
+                    description='Try searching for something else'
                   />
                 ) : (
                   <EmptyTask
                     icon={<CircleMinus />}
                     action={() => startTransition(() => setShowTaskInput(true))}
-                    title="No Tasks Created"
-                    description="You have not created any tasks yet. Click the button below to create your first task."
+                    title='No Tasks Created'
+                    description='You have not created any tasks yet. Click the button below to create your first task.'
                   />
                 ))}
             </div>
@@ -164,17 +166,17 @@ function App() {
           {showTaskInput ? (
             <NewTask
               addOptimisticTask={addOptimisticTask}
-              userId={user?.id || ""}
+              userId={user?.id || ''}
               onCancel={() => startTransition(() => setShowTaskInput(false))}
             />
           ) : (
             !isEditing && (
               <Button
                 onClick={() => startTransition(() => setShowTaskInput(true))}
-                className="fixed bottom-6 right-4 shadow-lg dark:shadow shadow-primary/65 dark:shadow-primary/35"
+                className='fixed right-4 bottom-6 shadow-lg shadow-primary/65 dark:shadow dark:shadow-primary/35'
               >
                 <Plus />
-                <span className="max-md:hidden">New Task</span>
+                <span className='max-md:hidden'>New Task</span>
               </Button>
             )
           )}
