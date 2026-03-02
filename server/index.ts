@@ -6,6 +6,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as z from 'zod';
+
 import { auth } from '../auth';
 import { tryCatch } from '../src/lib/utils/try-catch';
 import { db } from './db';
@@ -32,17 +33,12 @@ for (const key of REQUIRED_ENVS) {
 }
 
 // Get allowed origins from environment (comma-separated)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
-  .split(',')
-  .filter(Boolean);
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '').split(',').filter(Boolean);
 
 // Global CORS middleware configured for credentials
 app.use(
   cors({
-    origin(
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) {
+    origin(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
       // Allow same-origin (no origin header) and configured origins
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -91,9 +87,7 @@ const appRouter = router({
     .input(z.object({ id: z.string().min(1), task: z.string().min(1) }))
     .mutation(async (opts) => {
       const { id, task } = opts.input;
-      const { error } = await tryCatch(
-        db.update(tasks).set({ task }).where(eq(tasks.id, id)),
-      );
+      const { error } = await tryCatch(db.update(tasks).set({ task }).where(eq(tasks.id, id)));
       if (error) {
         console.error('editTask error:', error);
         throw new Error('Failed to edit task');
@@ -108,26 +102,20 @@ const appRouter = router({
     )
     .mutation(async (opts) => {
       const { id, status } = opts.input;
-      const { error } = await tryCatch(
-        db.update(tasks).set({ status }).where(eq(tasks.id, id)),
-      );
+      const { error } = await tryCatch(db.update(tasks).set({ status }).where(eq(tasks.id, id)));
       if (error) {
         console.error('updateTask error:', error);
         throw new Error('Failed to update task');
       }
     }),
-  deleteTask: publicProcedure
-    .input(z.object({ id: z.string().min(1) }))
-    .mutation(async (opts) => {
-      const { id } = opts.input;
-      const { error } = await tryCatch(
-        db.delete(tasks).where(eq(tasks.id, id)),
-      );
-      if (error) {
-        console.error('deleteTask error:', error);
-        throw new Error('Failed to delete task');
-      }
-    }),
+  deleteTask: publicProcedure.input(z.object({ id: z.string().min(1) })).mutation(async (opts) => {
+    const { id } = opts.input;
+    const { error } = await tryCatch(db.delete(tasks).where(eq(tasks.id, id)));
+    if (error) {
+      console.error('deleteTask error:', error);
+      throw new Error('Failed to delete task');
+    }
+  }),
 });
 
 // Better Auth handler

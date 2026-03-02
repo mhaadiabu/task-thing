@@ -1,11 +1,5 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  pgEnum,
-  uuid,
-  index,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, pgEnum, uuid, index } from 'drizzle-orm/pg-core';
+
 import { user } from './auth-schema';
 
 export const statusEnum = pgEnum('status', ['pending', 'completed']);
@@ -25,7 +19,5 @@ export const tasks = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [
-    index('status_updatedAt_idx').on(table.status, table.updatedAt.desc()),
-  ],
+  (table) => [index('status_updatedAt_idx').on(table.status, table.updatedAt.desc())],
 );
