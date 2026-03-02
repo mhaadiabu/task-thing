@@ -1,45 +1,45 @@
-import { queryClient, trpc } from "@/utils/trpc";
+import { queryClient, api } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useRef, useState, ViewTransition } from "react";
 import { tryCatch } from "../lib/utils/try-catch";
-import type { TasksList } from "../types/task";
 import { Button } from "./ui/button";
 import { ButtonGroup } from "./ui/button-group";
 import { Textarea } from "./ui/textarea";
+import type { Task } from "@/types/task";
+
+type Tasks = Omit<Task, "updatedAt">;
 
 export const NewTask = ({
+  addOptimisticTask,
   onCancel,
   userId,
 }: {
+  addOptimisticTask: (action: Tasks) => void;
   onCancel: () => void;
   userId: string;
 }) => {
   const [task, setTask] = useState("");
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const queryKey = trpc.getTasks.queryKey({ userId });
+  const queryKey = api.getTasks.queryKey({ userId });
 
   const newTask = useMutation(
-    trpc.createTask.mutationOptions({
-      onMutate: async ({ task: taskText }) => {
-        await queryClient.cancelQueries({ queryKey });
-        const previous = queryClient.getQueryData<TasksList>(queryKey);
-        queryClient.setQueryData<TasksList>(queryKey, (old) => [
-          ...(old ?? []),
-          {
-            id: crypto.randomUUID(),
-            userId,
-            task: taskText,
-            status: 'pending' as const,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]);
-        return { previous };
+    api.createTask.mutationOptions({
+      onMutate: () => {
+        const op: Tasks = {
+          id: crypto.randomUUID(),
+          task: task,
+          status: 'pending' as const,
+          createdAt: new Date().toISOString(),
+          userId: userId
+        }
+
+        addOptimisticTask(op)
       },
-      onError: (_err, _vars, ctx) => {
-        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
-      },
+      // onError: (error) => {
+      //   toast.error(error)
+      // },
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey });
       },
@@ -55,11 +55,12 @@ export const NewTask = ({
     }
 
     const trimmed = task.trim();
-    setTask("");
-    onCancel();
 
     const { error } = await tryCatch(newTask.mutateAsync({ userId, task: trimmed }));
     if (error) window.alert(error);
+
+    setTask("");
+    onCancel();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -79,7 +80,7 @@ export const NewTask = ({
           placeholder="Add a new task..."
           onChange={handleChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && e.ctrlKey) {
               createTask();
             }
           }}

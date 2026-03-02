@@ -1,15 +1,22 @@
-import { useTaskContext } from '@/context/TaskContext';
-import { cn } from '@/lib/utils';
-import { queryClient, trpc } from '@/utils/trpc';
-import { useMutation } from '@tanstack/react-query';
-import { Edit3, Trash2 } from 'lucide-react';
-import { startTransition, ViewTransition } from 'react';
-import { Button } from './ui/button';
-import { ButtonGroup } from './ui/button-group';
-import { Checkbox } from './ui/checkbox';
-import { Label } from './ui/label';
+import { useTaskContext } from "@/context/TaskContext";
+import { cn } from "@/lib/utils";
+import { queryClient, api } from "@/utils/trpc";
+import { useMutation } from "@tanstack/react-query";
+import { Edit3, Trash2 } from "lucide-react";
+import { startTransition, ViewTransition } from "react";
+import { Button } from "./ui/button";
+import { ButtonGroup } from "./ui/button-group";
+import { Checkbox } from "./ui/checkbox";
+import { Label } from "./ui/label";
 
-type TaskRow = { userId: string; task: string; id: string; status: 'pending' | 'completed'; createdAt: string; updatedAt: string };
+type TaskRow = {
+  userId: string;
+  task: string;
+  id: string;
+  status: "pending" | "completed";
+  createdAt: string;
+  updatedAt: string;
+};
 type TasksData = TaskRow[] | undefined;
 
 export const Task = ({
@@ -21,14 +28,14 @@ export const Task = ({
   id: string;
   userId: string;
   task: string;
-  status: 'pending' | 'completed';
+  status: "pending" | "completed";
   className?: string;
 }) => {
   const { setIsEditing } = useTaskContext();
-  const queryKey = trpc.getTasks.queryKey({ userId });
+  const queryKey = api.getTasks.queryKey({ userId });
 
   const toggleStatus = useMutation(
-    trpc.updateTask.mutationOptions({
+    api.updateTask.mutationOptions({
       onMutate: async ({ status: newStatus }) => {
         await queryClient.cancelQueries({ queryKey });
         const previous = queryClient.getQueryData(queryKey);
@@ -47,13 +54,11 @@ export const Task = ({
   );
 
   const deleteTask = useMutation(
-    trpc.deleteTask.mutationOptions({
+    api.deleteTask.mutationOptions({
       onMutate: async () => {
         await queryClient.cancelQueries({ queryKey });
         const previous = queryClient.getQueryData(queryKey);
-        queryClient.setQueryData(queryKey, (old: TasksData) =>
-          old?.filter((t) => t.id !== id),
-        );
+        queryClient.setQueryData(queryKey, (old: TasksData) => old?.filter((t) => t.id !== id));
         return { previous };
       },
       onError: (_err, _vars, ctx) => {
@@ -66,7 +71,7 @@ export const Task = ({
   );
 
   const handleToggle = () => {
-    const newStatus = status === 'pending' ? 'completed' : 'pending';
+    const newStatus = status === "pending" ? "completed" : "pending";
     startTransition(() => {
       toggleStatus.mutate({ id, status: newStatus });
     });
@@ -83,21 +88,19 @@ export const Task = ({
   };
 
   return (
-    <ViewTransition enter='slide-up' exit='scale-down'>
-      <div className='flex gap-2 items-center justify-between w-full py-2'>
-        <div className='flex gap-2 items-start'>
+    <ViewTransition enter="slide-up" exit="scale-down">
+      <div className="flex gap-2 items-center justify-between w-full py-2">
+        <div className="flex gap-2 items-start">
           <Checkbox
             id={`task-${id}`}
-            checked={status === 'completed'}
+            checked={status === "completed"}
             onCheckedChange={handleToggle}
           />
           <Label
             htmlFor={`task-${id}`}
             className={cn(
-              status === 'completed'
-                ? 'line-through text-muted-foreground'
-                : 'no-underline',
-              'word-wrap whitespace-pre-wrap',
+              status === "completed" ? "line-through text-muted-foreground" : "no-underline",
+              "word-wrap whitespace-pre-wrap",
             )}
           >
             {task}
@@ -105,10 +108,10 @@ export const Task = ({
         </div>
 
         <ButtonGroup>
-          <Button size='icon' onClick={handleEdit}>
+          <Button size="icon" onClick={handleEdit}>
             <Edit3 />
           </Button>
-          <Button size='icon' variant='destructive' onClick={handleDelete}>
+          <Button size="icon" variant="destructive" onClick={handleDelete}>
             <Trash2 />
           </Button>
         </ButtonGroup>

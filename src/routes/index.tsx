@@ -1,5 +1,6 @@
 import { EditTask } from "@/components/edit-task";
 import { EmptyTask } from "@/components/empty-task";
+import { LoadingScreen } from "@/components/loading-screen";
 import { NewTask } from "@/components/new-task";
 import { SearchTask } from "@/components/search-task";
 import { Task } from "@/components/task";
@@ -8,12 +9,14 @@ import { Table, TableBody, TableRow } from "@/components/ui/table";
 import { useTaskContext } from "@/context/TaskContext";
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 import { authClient } from "@/lib/auth-client";
-import { trpc } from "@/utils/trpc";
-import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { api } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { CircleMinus, LogOut, Plus, SearchX } from "lucide-react";
-import { startTransition, Suspense, useMemo, useState } from "react";
-import type { TaskStatus } from "../types/task";
+import { startTransition, Suspense, useMemo, useOptimistic, useState } from "react";
+import type { Task as TaskTypes, TaskStatus } from "../types/task";
+
+type Tasks = Omit<TaskTypes, "updatedAt">;
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -24,9 +27,7 @@ export const Route = createFileRoute("/")({
     return { user };
   },
   loader: async ({ context: { user, queryClient } }) => {
-    const tasks = await queryClient.ensureQueryData(
-      trpc.getTasks.queryOptions({ userId: user.id }),
-    );
+    const tasks = await queryClient.ensureQueryData(api.getTasks.queryOptions({ userId: user.id }));
 
     return { tasks };
   },
@@ -39,15 +40,20 @@ const STATUS_ORDER: Array<TaskStatus> = ["pending", "completed"];
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
  */
 function App() {
+  const { user } = Route.useRouteContext();
+  const { data: tasks } = useSuspenseQuery(api.getTasks.queryOptions({ userId: user.id }));
+
   const { isEditing } = useTaskContext();
   const navigate = useNavigate();
+  const isSessionLoading = authClient.useSession().isPending;
 
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { user } = Route.useRouteContext();
-
-  const { data: tasks } = useSuspenseQuery(trpc.getTasks.queryOptions({ userId: user.id }));
+  const [optimisticTask, addOptimisticTask] = useOptimistic(
+    tasks.map((task) => task as Tasks),
+    (state, newTask: Tasks) => [...state, newTask],
+  );
 
   const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.disabled = true;
@@ -82,17 +88,19 @@ function App() {
 
   const sortedTasks = useMemo(
     () =>
-      [...tasks].sort(
+      [...optimisticTask].sort(
         (a, b) =>
           STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
           toMs(b.createdAt) - toMs(a.createdAt),
       ),
-    [tasks],
+    [optimisticTask],
   );
 
   const filteredTasks = sortedTasks.filter(({ task }) =>
     task.toLowerCase().includes(search.toLowerCase()),
   );
+
+  if (isSessionLoading) return <LoadingScreen />;
 
   return (
     <main className="bg-background text-foreground font-medium w-full min-h-screen px-4 py-7 text-base dark">
@@ -155,6 +163,7 @@ function App() {
         <div>
           {showTaskInput ? (
             <NewTask
+              addOptimisticTask={addOptimisticTask}
               userId={user?.id || ""}
               onCancel={() => startTransition(() => setShowTaskInput(false))}
             />
