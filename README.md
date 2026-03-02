@@ -91,6 +91,7 @@ pnpm dev
 ```
 
 This will start:
+
 - Frontend dev server at `http://localhost:5173`
 - Backend server at `http://localhost:8000`
 
