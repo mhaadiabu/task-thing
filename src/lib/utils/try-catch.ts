@@ -17,9 +17,7 @@ type Result<T, E = Error> = Success<T> | Failure<E>;
  * @param promise - The promise to await.
  * @returns `Result<T, E>` with `data` set to the resolved value and `error` set to `null` on success; `data` set to `null` and `error` set to the caught error of type `E` on failure.
  */
-export async function tryCatch<T, E = Error>(
-  promise: Promise<T>,
-): Promise<Result<T, E>> {
+export async function tryCatch<T, E = Error>(promise: Promise<T>): Promise<Result<T, E>> {
   try {
     const data = await promise;
     return { data, error: null };

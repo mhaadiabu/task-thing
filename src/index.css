@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 /*@custom-variant dark (&:is(.dark *));*/
 
@@ -120,7 +120,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-background font-mono text-foreground;
   }
 }
 
@@ -133,39 +133,51 @@
 }
 
 ::view-transition-old(.slide-forward) {
-  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-             400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+  animation:
+    150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
 }
 
 ::view-transition-new(.slide-forward) {
-  animation: 210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
-             400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+  animation:
+    210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
 }
 
 ::view-transition-old(.slide-back) {
-  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-             400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
+  animation:
+    150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
 }
 
 ::view-transition-new(.slide-back) {
-  animation: 210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
-             400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-left;
+  animation:
+    210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-left;
 }
 
 ::view-transition-old(.slide-up) {
-  animation: 150ms ease-out both fade-out, 150ms ease-out both slide-down;
+  animation:
+    150ms ease-out both fade-out,
+    150ms ease-out both slide-down;
 }
 
 ::view-transition-new(.slide-up) {
-  animation: 210ms ease-in 150ms both fade-in, 400ms ease-in both slide-up;
+  animation:
+    210ms ease-in 150ms both fade-in,
+    400ms ease-in both slide-up;
 }
 
 ::view-transition-old(.slide-down) {
-  animation: 150ms ease-out both fade-out, 150ms ease-out both slide-down;
+  animation:
+    150ms ease-out both fade-out,
+    150ms ease-out both slide-down;
 }
 
 ::view-transition-new(.slide-down) {
-  animation: 210ms ease-in 150ms both fade-in, 400ms ease-in both slide-down;
+  animation:
+    210ms ease-in 150ms both fade-in,
+    400ms ease-in both slide-down;
 }
 
 ::view-transition-old(.fade-only) {

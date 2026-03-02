@@ -5,9 +5,7 @@ interface TaskContextType {
   setIsEditing: Dispatch<SetStateAction<string | null>>;
 }
 
-export const TaskContext = createContext<TaskContextType | undefined>(
-  undefined,
-);
+export const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const useTaskContext = () => {
   const context = useContext(TaskContext);

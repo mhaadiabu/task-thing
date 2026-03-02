@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback } from 'react';
 
 type KeyCombo = {
   key: string;
@@ -16,7 +16,7 @@ interface UseKeyboardShortcutOptions {
 export function useKeyboardShortcut(
   combo: KeyCombo,
   callback: () => void,
-  options: UseKeyboardShortcutOptions = {}
+  options: UseKeyboardShortcutOptions = {},
 ) {
   const { enabled = true, preventDefault = true } = options;
 
@@ -37,13 +37,13 @@ export function useKeyboardShortcut(
         callback();
       }
     },
-    [combo, callback, enabled, preventDefault]
+    [combo, callback, enabled, preventDefault],
   );
 
   useEffect(() => {
     if (!enabled) return;
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown, enabled]);
 }
