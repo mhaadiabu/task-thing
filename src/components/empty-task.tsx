@@ -1,3 +1,6 @@
+import { Plus } from 'lucide-react';
+import { ViewTransition } from 'react';
+
 import {
   Empty,
   EmptyContent,
@@ -6,9 +9,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
+
 import { Button } from './ui/button';
-import { Plus } from 'lucide-react';
-import { ViewTransition } from 'react';
 
 export const EmptyTask = ({
   action,
