@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "dist/**",
+    "*.min.js",
+    "convex/_generated/",
+    "node_modules/**",
+    "routeTree.gen.ts",
+    "pnpm-lock.yaml",
+    "bun.lock",
+    "package-lock.json"
+  ],
+  "jsxSingleQuote": true,
+  "singleQuote": true,
+  "quoteProps": "consistent",
+  "semi": true,
+  "sortImports": {
+    "groups": [
+      "type-import",
+      ["value-builtin", "value-external"],
+      "type-internal",
+      "value-internal",
+      ["type-parent", "type-sibling", "type-index"],
+      ["value-parent", "value-sibling", "value-index"],
+      "unknown"
+    ]
+  },
+  "sortTailwindcss": {
+    "stylesheet": "./src/index.css",
+    "functions": ["clsx", "cn"],
+    "preserveWhitespace": true
+  }
+}
