@@ -1,19 +1,16 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+
 import { db } from './server/db';
 import * as schema from './server/db/auth-schema';
 import 'dotenv/config';
 
 const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
 const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET;
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') ?? [
-  'http://localhost:5173',
-];
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:5173'];
 
 if (!BETTER_AUTH_SECRET) {
-  console.warn(
-    '[Auth Warning] BETTER_AUTH_SECRET is not set. This is required in production.',
-  );
+  console.warn('[Auth Warning] BETTER_AUTH_SECRET is not set. This is required in production.');
 }
 
 // Determine if we're in production (HTTPS) or development (HTTP)
