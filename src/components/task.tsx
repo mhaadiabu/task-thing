@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { Edit3, Trash2 } from 'lucide-react';
 import { startTransition, ViewTransition } from 'react';
+import { toast } from 'sonner';
 
 import { useTaskContext } from '@/context/TaskContext';
 import { cn } from '@/lib/utils';
@@ -22,35 +23,32 @@ type TaskRow = {
 type TasksData = TaskRow[] | undefined;
 
 export const Task = ({
+  cancelTaskCreate,
   id,
-  userId,
-  task,
+  mutateOptimisticTask,
   status,
+  task,
+  userId,
 }: {
-  id: string;
-  userId: string;
-  task: string;
-  status: 'pending' | 'completed';
+  cancelTaskCreate: () => void;
   className?: string;
+  id: string;
+  mutateOptimisticTask: (action: unknown) => void;
+  status: 'pending' | 'completed';
+  task: string;
+  userId: string;
 }) => {
   const { setIsEditing } = useTaskContext();
   const queryKey = api.getTasks.queryKey({ userId });
 
   const toggleStatus = useMutation(
     api.updateTask.mutationOptions({
-      onMutate: async ({ status: newStatus }) => {
-        await queryClient.cancelQueries({ queryKey });
-        const previous = queryClient.getQueryData(queryKey);
-        queryClient.setQueryData(queryKey, (old: TasksData) =>
-          old?.map((t) => (t.id === id ? { ...t, status: newStatus } : t)),
-        );
-        return { previous };
-      },
-      onError: (_err, _vars, ctx) => {
-        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
+      onError: (error) => {
+        toast.error(error.message);
       },
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey });
+        toast.success('Task updated!');
       },
     }),
   );
@@ -63,11 +61,12 @@ export const Task = ({
         queryClient.setQueryData(queryKey, (old: TasksData) => old?.filter((t) => t.id !== id));
         return { previous };
       },
-      onError: (_err, _vars, ctx) => {
-        if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous);
+      onError: (error) => {
+        toast.error(error.message);
       },
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey });
+        toast.success('Task deleted!');
       },
     }),
   );
@@ -75,18 +74,23 @@ export const Task = ({
   const handleToggle = () => {
     const newStatus = status === 'pending' ? 'completed' : 'pending';
     startTransition(() => {
+      mutateOptimisticTask({ type: 'update', payload: { id, status: newStatus } });
       toggleStatus.mutate({ id, status: newStatus });
     });
   };
 
   const handleDelete = () => {
     startTransition(() => {
+      mutateOptimisticTask({ type: 'delete', payload: id });
       deleteTask.mutate({ id });
     });
   };
 
   const handleEdit = () => {
-    startTransition(() => setIsEditing(id));
+    startTransition(() => {
+      setIsEditing(id);
+      cancelTaskCreate();
+    });
   };
 
   return (
