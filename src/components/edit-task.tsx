@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { Check, X } from 'lucide-react';
 import { startTransition, useState, ViewTransition } from 'react';
+import { toast } from 'sonner';
 
 import { useTaskContext } from '@/context/TaskContext';
 import { queryClient, api } from '@/utils/trpc';
@@ -9,7 +10,17 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
 
-export const EditTask = ({ id, userId, task }: { id: string; userId: string; task: string }) => {
+export const EditTask = ({
+  editOptimisticTask,
+  id,
+  userId,
+  task,
+}: {
+  editOptimisticTask: (action: unknown) => void;
+  id: string;
+  userId: string;
+  task: string;
+}) => {
   const { setIsEditing } = useTaskContext();
 
   const [editedTask, setEditedTask] = useState(task);
@@ -17,6 +28,7 @@ export const EditTask = ({ id, userId, task }: { id: string; userId: string; tas
   const edit = useMutation(
     api.editTask.mutationOptions({
       onSettled: () => {
+        toast('Task edited succesfully!');
         queryClient.invalidateQueries({
           queryKey: api.getTasks.queryKey({ userId }),
         });
@@ -27,9 +39,12 @@ export const EditTask = ({ id, userId, task }: { id: string; userId: string; tas
   const cancel = () => startTransition(() => setIsEditing(null));
 
   const editTask = () => {
-    if (!editedTask.trim()) return;
-    edit.mutate({ id, task: editedTask.trim() });
-    startTransition(() => setIsEditing(null));
+    if (!editedTask) return;
+    startTransition(() => {
+      editOptimisticTask({ type: 'edit', payload: { id, task: editedTask.trim() } });
+      edit.mutate({ id, task: editedTask.trim() });
+      setIsEditing(null);
+    });
   };
 
   return (
