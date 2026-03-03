@@ -52,9 +52,42 @@ function App() {
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
-  const [optimisticTask, addOptimisticTask] = useOptimistic(
+  const [optimisticTask, mutateOptimisticTask] = useOptimistic(
     tasks.map((task) => task as Tasks),
-    (state, newTask: Tasks) => [...state, newTask],
+    (
+      state,
+      action:
+        | { type: 'create'; payload: Tasks }
+        | { type: 'edit'; payload: { id: string; task: string } }
+        | { type: 'update'; payload: { id: string; status: 'pending' | 'completed' } }
+        | { type: 'delete'; payload: { id: string } },
+    ) => {
+      switch (action.type) {
+        case 'create':
+          return [...state, action.payload.task];
+        case 'edit':
+          return state.map((task) => {
+            if (task.id === action.payload.id) {
+              return { ...task, task: action.payload.task };
+            }
+            return state;
+          });
+        case 'update':
+          return state.map((task) => {
+            if (task.id === action.payload.id) {
+              return {
+                ...task,
+                status: action.payload.status,
+              };
+            }
+            return state;
+          });
+        case 'delete':
+          return state.filter((task) => task.id !== action.payload.id);
+        default:
+          return state;
+      }
+    },
   );
 
   const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -131,10 +164,19 @@ function App() {
                 {filteredTasks.map((task) => (
                   <TableRow key={task.id}>
                     {isEditing === task.id ? (
-                      <EditTask id={task.id} userId={task.userId} task={task.task} />
+                      <EditTask
+                        editOptimisticTask={mutateOptimisticTask}
+                        id={task.id}
+                        userId={task.userId}
+                        task={task.task}
+                      />
                     ) : (
                       <Suspense fallback={<div>Loading...</div>}>
-                        <Task {...task} />
+                        <Task
+                          {...task}
+                          cancelTaskCreate={() => setShowTaskInput(false)}
+                          mutateOptimisticTask={mutateOptimisticTask}
+                        />
                       </Suspense>
                     )}
                   </TableRow>
@@ -165,7 +207,7 @@ function App() {
         <div>
           {showTaskInput ? (
             <NewTask
-              addOptimisticTask={addOptimisticTask}
+              addOptimisticTask={mutateOptimisticTask}
               userId={user?.id || ''}
               onCancel={() => startTransition(() => setShowTaskInput(false))}
             />
