@@ -19,7 +19,7 @@ export const NewTask = ({
   onCancel,
   userId,
 }: {
-  addOptimisticTask: (action: Tasks) => void;
+  addOptimisticTask: (action: unknown) => void;
   onCancel: () => void;
   userId: string;
 }) => {
@@ -30,23 +30,12 @@ export const NewTask = ({
 
   const newTask = useMutation(
     api.createTask.mutationOptions({
-      onMutate: () => {
-        const op: Tasks = {
-          id: crypto.randomUUID(),
-          task: task,
-          status: 'pending' as const,
-          createdAt: new Date().toISOString(),
-          userId: userId,
-        };
-
-        addOptimisticTask(op);
-      },
       onError: (error) => {
-        toast.error(error.message)
+        toast.error(error.message);
       },
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey });
-        toast.success('Task created!')
+        toast.success('Task created successfully!');
       },
     }),
   );
@@ -59,9 +48,18 @@ export const NewTask = ({
       return;
     }
 
-    const trimmed = task.trim();
+    addOptimisticTask({
+      type: 'create',
+      action: {
+        id: crypto.randomUUID(),
+        task: task.trim(),
+        status: 'pending' as const,
+        createdAt: new Date().toISOString(),
+        userId: userId,
+      },
+    });
 
-    const { error } = await tryCatch(newTask.mutateAsync({ userId, task: trimmed }));
+    const { error } = await tryCatch(newTask.mutateAsync({ userId, task: task.trim() }));
     if (error) toast(error.message);
 
     setTask('');
@@ -85,9 +83,7 @@ export const NewTask = ({
           placeholder='Add a new task...'
           onChange={handleChange}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.ctrlKey) {
-              createTask();
-            }
+            if (e.key === 'Enter' && e.ctrlKey) createTask();
           }}
           aria-invalid='false'
           rows={1}
