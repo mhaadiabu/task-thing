@@ -16,9 +16,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { api } from '@/utils/trpc';
 
-import type { OptimisticTaskAction, Task as TaskTypes, TaskStatus } from '../types/task';
-
-type Tasks = Omit<TaskTypes, 'updatedAt'>;
+import type { OptimisticTaskAction, TasksList, TaskStatus } from '../types/task';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
@@ -53,8 +51,8 @@ function App() {
   const [search, setSearch] = useState('');
 
   const [optimisticTask, mutateOptimisticTask] = useOptimistic(
-    tasks.map((task) => task as Tasks),
-    (state, action: OptimisticTaskAction): Tasks[] => {
+    tasks,
+    (state, action: OptimisticTaskAction): TasksList => {
       switch (action.type) {
         case 'create':
           return [...state, action.payload];
