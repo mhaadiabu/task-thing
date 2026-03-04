@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { queryClient, api } from '@/utils/trpc';
 
 import type { OptimisticTaskAction } from '../types/task';
+
 import { tryCatch } from '../lib/utils/try-catch';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
@@ -52,7 +53,8 @@ export const NewTask = ({
         task: task.trim(),
         status: 'pending' as const,
         createdAt: new Date().toISOString(),
-        userId: userId,
+        updatedAt: new Date().toISOString(),
+        userId,
       },
     });
 

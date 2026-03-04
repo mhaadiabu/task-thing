@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { queryClient, api } from '@/utils/trpc';
 
 import type { OptimisticTaskAction } from '../types/task';
+
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
@@ -82,7 +83,7 @@ export const Task = ({
 
   const handleDelete = () => {
     startTransition(() => {
-      mutateOptimisticTask({ type: 'delete', payload: id });
+      mutateOptimisticTask({ type: 'delete', payload: { id } });
       deleteTask.mutate({ id });
     });
   };
