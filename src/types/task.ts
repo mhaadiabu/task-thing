@@ -21,3 +21,12 @@ export type Task = {
  * Convenience type for the `getTasks` query data.
  */
 export type TasksList = Task[];
+
+/**
+ * Union of all actions that can be dispatched to the optimistic task reducer.
+ */
+export type OptimisticTaskAction =
+  | { type: 'create'; payload: Omit<Task, 'updatedAt'> }
+  | { type: 'edit'; payload: { id: string; task: string } }
+  | { type: 'update'; payload: { id: string; status: TaskStatus } }
+  | { type: 'delete'; payload: { id: string } };
