@@ -26,7 +26,7 @@ export type TasksList = Task[];
  * Union of all actions that can be dispatched to the optimistic task reducer.
  */
 export type OptimisticTaskAction =
-  | { type: 'create'; payload: Omit<Task, 'updatedAt'> }
+  | { type: 'create'; payload: Task }
   | { type: 'edit'; payload: { id: string; task: string } }
   | { type: 'update'; payload: { id: string; status: TaskStatus } }
   | { type: 'delete'; payload: { id: string } };
