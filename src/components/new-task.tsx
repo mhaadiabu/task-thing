@@ -33,7 +33,7 @@ export const NewTask = ({
       },
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey });
-        toast.success('Task created successfully!');
+        toast.success('Task created!');
       },
     }),
   );
