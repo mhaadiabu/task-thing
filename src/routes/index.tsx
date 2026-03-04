@@ -42,84 +42,84 @@ const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
  */
 function App() {
-   const { user } = Route.useRouteContext();
-   const { data: tasks } = useSuspenseQuery(api.getTasks.queryOptions({ userId: user.id }));
+  const { user } = Route.useRouteContext();
+  const { data: tasks } = useSuspenseQuery(api.getTasks.queryOptions({ userId: user.id }));
 
-   const { isEditing } = useTaskContext();
-   const navigate = useNavigate();
-   const isSessionLoading = authClient.useSession().isPending;
+  const { isEditing } = useTaskContext();
+  const navigate = useNavigate();
+  const isSessionLoading = authClient.useSession().isPending;
 
-   const [showTaskInput, setShowTaskInput] = useState(false);
-   const [search, setSearch] = useState('');
+  const [showTaskInput, setShowTaskInput] = useState(false);
+  const [search, setSearch] = useState('');
 
-   const [optimisticTask, mutateOptimisticTask] = useOptimistic(
-     tasks.map((task) => task as Tasks),
-     (
-       state,
-       action:
-         | { type: 'create'; payload: Tasks }
-         | { type: 'edit'; payload: { id: string; task: string } }
-         | { type: 'update'; payload: { id: string; status: 'pending' | 'completed' } }
-         | { type: 'delete'; payload: { id: string } },
-     ): Tasks[] => {
-       switch (action.type) {
-         case 'create':
-           return [...state, action.payload];
-         case 'edit':
-           return state.map((task) => {
-             if (task.id === action.payload.id) {
-               return { ...task, task: action.payload.task };
-             }
-             return task;
-           });
-         case 'update':
-           return state.map((task) => {
-             if (task.id === action.payload.id) {
-               return {
-                 ...task,
-                 status: action.payload.status,
-               };
-             }
-             return task;
-           });
-         case 'delete':
-           return state.filter((task) => task.id !== action.payload.id);
-         default:
-           return state;
-       }
-     },
-   );
+  const [optimisticTask, mutateOptimisticTask] = useOptimistic(
+    tasks.map((task) => task as Tasks),
+    (
+      state,
+      action:
+        | { type: 'create'; payload: Tasks }
+        | { type: 'edit'; payload: { id: string; task: string } }
+        | { type: 'update'; payload: { id: string; status: 'pending' | 'completed' } }
+        | { type: 'delete'; payload: { id: string } },
+    ): Tasks[] => {
+      switch (action.type) {
+        case 'create':
+          return [...state, action.payload];
+        case 'edit':
+          return state.map((task) => {
+            if (task.id === action.payload.id) {
+              return { ...task, task: action.payload.task };
+            }
+            return task;
+          });
+        case 'update':
+          return state.map((task) => {
+            if (task.id === action.payload.id) {
+              return {
+                ...task,
+                status: action.payload.status,
+              };
+            }
+            return task;
+          });
+        case 'delete':
+          return state.filter((task) => task.id !== action.payload.id);
+        default:
+          return state;
+      }
+    },
+  );
 
-   const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
-     e.currentTarget.disabled = true;
+  const signOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.disabled = true;
 
-     await authClient.signOut({
-       fetchOptions: {
-         onSuccess: () => {
-           navigate({ to: '/auth/sign-in' });
-         },
-         onError: () => {
-           e.currentTarget.disabled = false;
-         },
-       },
-     });
-   };
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate({ to: '/auth/sign-in' });
+        },
+        onError: () => {
+          e.currentTarget.disabled = false;
+        },
+      },
+    });
+  };
 
-   // Alt + T to toggle create task input
-   useKeyboardShortcut({ key: 't', alt: true }, () => {
-     startTransition(() => setShowTaskInput((prev) => !prev));
-   });
+  // Alt + T to toggle create task input
+  useKeyboardShortcut({ key: 't', alt: true }, () => {
+    startTransition(() => setShowTaskInput((prev) => !prev));
+  });
 
-   // Escape to close create task input
-   useKeyboardShortcut(
-     { key: 'Escape' },
-     () => {
-       startTransition(() => setShowTaskInput(false));
-     },
-     { enabled: showTaskInput },
-   );
+  // Escape to close create task input
+  useKeyboardShortcut(
+    { key: 'Escape' },
+    () => {
+      startTransition(() => setShowTaskInput(false));
+    },
+    { enabled: showTaskInput },
+  );
 
-   const toMs = (d: string | Date | null) => (d ? new Date(d).getTime() : 0);
+  const toMs = (d: string | Date | null) => (d ? new Date(d).getTime() : 0);
 
   const sortedTasks = useMemo(
     () =>
