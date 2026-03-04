@@ -1,5 +1,5 @@
 {
-  "name": "task-tracker",
+  "name": "task-thing",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,7 @@
     "dev:server": "tsx --watch server/index.ts",
     "build": "tsc -b && vite build",
     "start": "NODE_ENV=production node --import tsx server/index.ts",
+    "format": "oxfmt",
     "lint": "eslint .",
     "preview": "vite preview",
     "db:generate": "drizzle-kit generate",
