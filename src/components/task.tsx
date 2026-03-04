@@ -74,8 +74,8 @@ export const Task = ({
   );
 
   const handleToggle = () => {
-    const newStatus = status === 'pending' ? 'completed' : 'pending';
     startTransition(() => {
+      const newStatus = status === 'pending' ? 'completed' : 'pending';
       mutateOptimisticTask({ type: 'update', payload: { id, status: newStatus } });
       toggleStatus.mutate({ id, status: newStatus });
     });
