@@ -16,7 +16,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { api } from '@/utils/trpc';
 
-import type { Task as TaskTypes, TaskStatus } from '../types/task';
+import type { OptimisticTaskAction, Task as TaskTypes, TaskStatus } from '../types/task';
 
 type Tasks = Omit<TaskTypes, 'updatedAt'>;
 
@@ -54,14 +54,7 @@ function App() {
 
   const [optimisticTask, mutateOptimisticTask] = useOptimistic(
     tasks.map((task) => task as Tasks),
-    (
-      state,
-      action:
-        | { type: 'create'; payload: Tasks }
-        | { type: 'edit'; payload: { id: string; task: string } }
-        | { type: 'update'; payload: { id: string; status: 'pending' | 'completed' } }
-        | { type: 'delete'; payload: { id: string } },
-    ): Tasks[] => {
+    (state, action: OptimisticTaskAction): Tasks[] => {
       switch (action.type) {
         case 'create':
           return [...state, action.payload];
