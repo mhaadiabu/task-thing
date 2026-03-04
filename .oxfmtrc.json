@@ -3,7 +3,7 @@
   "ignorePatterns": [
     "dist/**",
     "*.min.js",
-    "convex/_generated/",
+    "drizzle/**",
     "node_modules/**",
     "routeTree.gen.ts",
     "pnpm-lock.yaml",
