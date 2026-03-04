@@ -60,8 +60,8 @@ PORT=8000
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/mhaadiabu/task-tracker.git
-cd task-tracker
+git clone https://github.com/mhaadiabu/task-thing.git
+cd task-thing
 ```
 
 2. Install dependencies:
@@ -119,7 +119,7 @@ pnpm start
 ## Project Structure
 
 ```
-task-tracker/
+task-thing/
 ├── drizzle/              # Database migrations
 ├── public/               # Static assets
 ├── server/
