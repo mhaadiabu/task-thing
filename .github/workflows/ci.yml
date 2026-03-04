@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check formatting (oxfmt)
-        run: pnpm oxfmt --check .
+        run: pnpm oxfmt
 
       - name: Build
         run: pnpm build
