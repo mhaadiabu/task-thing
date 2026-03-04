@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { queryClient, api } from '@/utils/trpc';
 
+import type { OptimisticTaskAction } from '../types/task';
 import { tryCatch } from '../lib/utils/try-catch';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
@@ -15,7 +16,7 @@ export const NewTask = ({
   onCancel,
   userId,
 }: {
-  addOptimisticTask: (action: unknown) => void;
+  addOptimisticTask: (action: OptimisticTaskAction) => void;
   onCancel: () => void;
   userId: string;
 }) => {
@@ -46,7 +47,7 @@ export const NewTask = ({
 
     addOptimisticTask({
       type: 'create',
-      action: {
+      payload: {
         id: crypto.randomUUID(),
         task: task.trim(),
         status: 'pending' as const,

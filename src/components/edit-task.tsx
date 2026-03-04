@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useTaskContext } from '@/context/TaskContext';
 import { queryClient, api } from '@/utils/trpc';
 
+import type { OptimisticTaskAction } from '../types/task';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
@@ -16,7 +17,7 @@ export const EditTask = ({
   userId,
   task,
 }: {
-  editOptimisticTask: (action: unknown) => void;
+  editOptimisticTask: (action: OptimisticTaskAction) => void;
   id: string;
   userId: string;
   task: string;

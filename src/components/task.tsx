@@ -7,6 +7,7 @@ import { useTaskContext } from '@/context/TaskContext';
 import { cn } from '@/lib/utils';
 import { queryClient, api } from '@/utils/trpc';
 
+import type { OptimisticTaskAction } from '../types/task';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Checkbox } from './ui/checkbox';
@@ -33,7 +34,7 @@ export const Task = ({
   cancelTaskCreate: () => void;
   className?: string;
   id: string;
-  mutateOptimisticTask: (action: unknown) => void;
+  mutateOptimisticTask: (action: OptimisticTaskAction) => void;
   status: 'pending' | 'completed';
   task: string;
   userId: string;
