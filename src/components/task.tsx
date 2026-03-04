@@ -96,7 +96,7 @@ export const Task = ({
   };
 
   return (
-    <ViewTransition enter='slide-up' exit='scale-down'>
+    <ViewTransition enter='slide-up' exit='slide-down-out' update='slide-down'>
       <div className='flex w-full items-center justify-between gap-2 py-2'>
         <div className='flex items-start gap-2'>
           <Checkbox
