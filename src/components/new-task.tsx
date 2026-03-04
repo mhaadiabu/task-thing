@@ -3,16 +3,12 @@ import { Plus, X } from 'lucide-react';
 import { useRef, useState, ViewTransition } from 'react';
 import { toast } from 'sonner';
 
-import type { Task } from '@/types/task';
-
 import { queryClient, api } from '@/utils/trpc';
 
 import { tryCatch } from '../lib/utils/try-catch';
 import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import { Textarea } from './ui/textarea';
-
-type Tasks = Omit<Task, 'updatedAt'>;
 
 export const NewTask = ({
   addOptimisticTask,
