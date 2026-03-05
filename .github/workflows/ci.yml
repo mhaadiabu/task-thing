@@ -1,4 +1,4 @@
-#name: CI
+name: CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Format & Build
+    name: Format, Lint & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check formatting (oxfmt)
-        run: pnpm oxfmt
+        run: pnpm format --check
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build
         run: pnpm build
