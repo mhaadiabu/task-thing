@@ -1,2 +1,6 @@
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - react-dom@0.0.0-experimental-e2731312-20260630
+  - react@0.0.0-experimental-e2731312-20260630
+  - scheduler@0.0.0-experimental-e2731312-20260630
