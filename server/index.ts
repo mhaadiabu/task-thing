@@ -72,16 +72,14 @@ const appRouter = router({
       return data;
     }),
   createTask: publicProcedure
-    .input(z.object({ userId: z.string().min(1), task: z.string().min(1) }))
+    .input(z.object({ userId: z.string().min(1), task: z.string().min(1), id: z.string().uuid() }))
     .mutation(async (opts) => {
-      const { userId, task } = opts.input;
-      const { error } = await tryCatch(
-        db.insert(tasks).values({ userId, task, status: 'pending' }),
-      );
-      if (error) {
-        console.error('createTask error:', error);
-        throw new Error('Failed to create task');
-      }
+      const { id, userId, task } = opts.input;
+      const [row] = await db
+        .insert(tasks)
+        .values({ id, userId, task, status: 'pending' })
+        .returning();
+      return row;
     }),
   editTask: publicProcedure
     .input(z.object({ id: z.string().min(1), task: z.string().min(1) }))
