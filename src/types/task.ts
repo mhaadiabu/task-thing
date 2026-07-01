@@ -1,20 +1,24 @@
 export type TaskStatus = 'pending' | 'completed';
 
 /**
- * Shared Task shape used on the client for optimistic updates.
- *
- * Notes:
- * - The server returns task rows from Drizzle/Postgres; timestamps may arrive as
- *   strings depending on serialization. For optimistic entries we typically use Date.
- * - Keep `createdAt/updatedAt` broad enough to accommodate both.
+ * Shape returned by the tRPC server (`getTasks`) and stored in the React Query cache.
+ * Drizzle serializes `timestamp` columns to ISO strings over the wire.
  */
-export type Task = {
+export type ServerTask = {
   id: string;
   userId: string;
   task: string;
   status: TaskStatus;
-  createdAt: Date | string | null;
-  updatedAt: Date | string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * Same as ServerTask plus an optional `pending` flag used by the optimistic reducer
+ * to mark rows that are awaiting server confirmation (shimmer).
+ */
+export type Task = ServerTask & {
+  pending?: boolean;
 };
 
 /**
