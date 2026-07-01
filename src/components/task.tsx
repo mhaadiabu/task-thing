@@ -38,11 +38,7 @@ export const Task = ({
       )}
     >
       <div className='flex items-start gap-2'>
-        <Checkbox
-          id={`task-${id}`}
-          checked={status === 'completed'}
-          onCheckedChange={onToggle}
-        />
+        <Checkbox id={`task-${id}`} checked={status === 'completed'} onCheckedChange={onToggle} />
         <Label
           htmlFor={`task-${id}`}
           className={cn(

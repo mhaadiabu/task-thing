@@ -59,9 +59,7 @@ function App() {
       switch (action.type) {
         case 'edit':
           return state.map((t) =>
-            t.id === action.payload.id
-              ? { ...t, task: action.payload.task, pending: true }
-              : t,
+            t.id === action.payload.id ? { ...t, task: action.payload.task, pending: true } : t,
           );
         case 'update':
           return state.map((t) =>
@@ -121,11 +119,9 @@ function App() {
     });
   };
 
-  const openCreate = () =>
-    startTransition(() => setShowTaskInput(true));
+  const openCreate = () => startTransition(() => setShowTaskInput(true));
 
-  const closeCreate = () =>
-    startTransition(() => setShowTaskInput(false));
+  const closeCreate = () => startTransition(() => setShowTaskInput(false));
 
   const startEdit = (id: string) => {
     startTransition(() => {
@@ -200,21 +196,17 @@ function App() {
     });
   };
 
-  const cancelEdit = () =>
-    startTransition(() => setIsEditing(null));
+  const cancelEdit = () => startTransition(() => setIsEditing(null));
 
   // Alt + T to toggle create task input
-  useKeyboardShortcut(
-    { key: 't', alt: true },
-    () => startTransition(() => setShowTaskInput((prev) => !prev)),
+  useKeyboardShortcut({ key: 't', alt: true }, () =>
+    startTransition(() => setShowTaskInput((prev) => !prev)),
   );
 
   // Escape to close create task input
-  useKeyboardShortcut(
-    { key: 'Escape' },
-    () => startTransition(() => setShowTaskInput(false)),
-    { enabled: showTaskInput },
-  );
+  useKeyboardShortcut({ key: 'Escape' }, () => startTransition(() => setShowTaskInput(false)), {
+    enabled: showTaskInput,
+  });
 
   const toMs = (d: string | Date | null) => (d ? new Date(d).getTime() : 0);
 
