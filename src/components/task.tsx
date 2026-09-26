@@ -38,7 +38,12 @@ export const Task = ({
       )}
     >
       <div className='flex items-start gap-2'>
-        <Checkbox id={`task-${id}`} checked={status === 'completed'} onCheckedChange={onToggle} />
+        <Checkbox
+          id={`task-${id}`}
+          checked={status === 'completed'}
+          onCheckedChange={onToggle}
+          disabled={pending}
+        />
         <Label
           htmlFor={`task-${id}`}
           className={cn(
@@ -51,10 +56,10 @@ export const Task = ({
       </div>
 
       <ButtonGroup>
-        <Button size='icon' onClick={onEdit}>
+        <Button size='icon' onClick={onEdit} disabled={pending}>
           <Edit3 />
         </Button>
-        <Button size='icon' variant='destructive' onClick={onDelete}>
+        <Button size='icon' variant='destructive' onClick={onDelete} disabled={pending}>
           <Trash2 />
         </Button>
       </ButtonGroup>

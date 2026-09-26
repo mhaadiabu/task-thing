@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import './morph.css';
 
 /*@custom-variant dark (&:is(.dark *));*/
 
@@ -124,149 +125,8 @@
   }
 }
 
-/* Root cross-fade on navigation */
-::view-transition-old(root) {
-  animation: 0.4s ease-in both fade-out;
-}
-
-::view-transition-new(root) {
-  animation: 0.4s ease-in both fade-in;
-}
-
-/* Route slide classes (unchanged) */
-::view-transition-old(.slide-forward) {
-  animation:
-    150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
-}
-
-::view-transition-new(.slide-forward) {
-  animation:
-    210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
-    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
-}
-
-::view-transition-old(.slide-back) {
-  animation:
-    150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
-}
-
-::view-transition-new(.slide-back) {
-  animation:
-    210ms cubic-bezier(0, 0, 0.2, 1) 150ms both fade-in,
-    400ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-left;
-}
-
-/* Task row: enters by sliding up from below. Only the new snapshot animates. */
-::view-transition-new(.slide-up) {
-  animation: 280ms cubic-bezier(0.16, 1, 0.3, 1) both slide-up;
-}
-
-/* Task row: exits by shrinking to nothing. Only the old snapshot animates. */
-::view-transition-old(.scale) {
-  animation: 240ms cubic-bezier(0.4, 0, 1, 1) both scale-out;
-}
-
-::view-transition-new(.scale) {
-  animation: 220ms cubic-bezier(0.16, 1, 0.3, 1) both scale-in;
-}
-
-/* Fade only (subtle cross-fade) */
-::view-transition-old(.fade-only) {
-  animation: 200ms ease-out both fade-out;
-}
-
-::view-transition-new(.fade-only) {
-  animation: 200ms ease-in 100ms both fade-in;
-}
-
-/* Slow fade for theme switches etc. */
-::view-transition-old(.slow-fade) {
-  animation-duration: 500ms;
-}
-
-::view-transition-new(.slow-fade) {
-  animation-duration: 500ms;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes slide-to-right {
-  to {
-    transform: translateX(50px);
-  }
-}
-
-@keyframes slide-from-right {
-  from {
-    transform: translateX(50px);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-to-left {
-  to {
-    transform: translateX(-50px);
-  }
-}
-
-@keyframes slide-from-left {
-  from {
-    transform: translateX(-50px);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* Slide up into place — used for row enter */
-@keyframes slide-up {
-  from {
-    transform: translateY(48px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Shrink-out for row exit (delete) */
-@keyframes scale-out {
-  from {
-    transform: scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.6);
-    opacity: 0;
-  }
-}
-
-/* Grow-in for row enter (used by EditTask swap) */
-@keyframes scale-in {
-  from {
-    transform: scale(0.92);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
+/* View-transition motion comes from morph.css (vt-* classes).
+   Boundaries opt in per trigger, e.g. <ViewTransition default="vt-move vt-presence" />. */
 
 @keyframes shimmer {
   0% {
