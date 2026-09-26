@@ -233,7 +233,7 @@ function App() {
       [...optimisticTask].sort(
         (a, b) =>
           STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
-          toMs(b.createdAt) - toMs(b.createdAt),
+          toMs(b.createdAt) - toMs(a.createdAt),
       ),
     [optimisticTask],
   );
