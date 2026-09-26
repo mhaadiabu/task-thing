@@ -1,2 +1,2 @@
 export { user, session, account, verification } from './auth-schema';
-export { tasks } from './task-schema';
+export { tasks, statusEnum } from './task-schema';
