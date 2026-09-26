@@ -82,34 +82,99 @@ function App() {
     },
   );
 
+  // Snapshot the cache before a mutation so failures can roll back to
+  // server truth. Restoring it also drops the useOptimistic layer, so the
+  // rollback animates instead of jumping.
+  const snapshot = async () => {
+    await queryClient.cancelQueries({ queryKey });
+    return { previous: queryClient.getQueryData<TasksList>(queryKey) };
+  };
+
+  const rollback = (previous: TasksList | undefined) => {
+    if (!previous) return;
+    animate(() => queryClient.setQueryData(queryKey, previous));
+  };
+
   const createTaskMutation = useMutation(
     api.createTask.mutationOptions({
-      onSuccess: () => toast.success('Task created!'),
-      onError: (error) => toast.error(error.message),
+      onSuccess: (row) => {
+        toast.success('Task created!');
+        // Swap the optimistic placeholder for the canonical row so the
+        // shimmer cross-fades away. No refetch: it would land outside the
+        // transition and stomp the enter animation.
+        if (!row) return;
+        animate(() => {
+          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+            (old ?? []).map((t) => (t.id === row.id ? { ...row } : t)),
+          );
+        });
+      },
+      onError: (error, vars) => {
+        toast.error(error.message);
+        // Roll the placeholder back out.
+        animate(() => {
+          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+            (old ?? []).filter((t) => t.id !== vars.id),
+          );
+        });
+      },
     }),
   );
 
   const updateTaskMutation = useMutation(
     api.updateTask.mutationOptions({
-      onSuccess: () => toast.success('Task updated!'),
-      onError: (error) => toast.error(error.message),
-      onSettled: () => queryClient.invalidateQueries({ queryKey }),
+      onMutate: snapshot,
+      onSuccess: (_data, { id, status }) => {
+        toast.success('Task updated!');
+        // Reconcile the cache so the optimistic layer drops cleanly.
+        animate(() => {
+          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+            (old ?? []).map((t) => (t.id === id ? { ...t, status } : t)),
+          );
+        });
+      },
+      onError: (error, _vars, context) => {
+        toast.error(error.message);
+        rollback(context?.previous);
+      },
     }),
   );
 
   const deleteTaskMutation = useMutation(
     api.deleteTask.mutationOptions({
-      onSuccess: () => toast.success('Task deleted!'),
-      onError: (error) => toast.error(error.message),
-      onSettled: () => queryClient.invalidateQueries({ queryKey }),
+      onMutate: snapshot,
+      onSuccess: (_data, { id }) => {
+        toast.success('Task deleted!');
+        // Drop the row from the cache too, so no refetch is needed.
+        animate(() => {
+          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+            (old ?? []).filter((t) => t.id !== id),
+          );
+        });
+      },
+      onError: (error, _vars, context) => {
+        toast.error(error.message);
+        rollback(context?.previous);
+      },
     }),
   );
 
   const editTaskMutation = useMutation(
     api.editTask.mutationOptions({
-      onSuccess: () => toast('Task edited successfully!'),
-      onError: (error) => toast.error(error.message),
-      onSettled: () => queryClient.invalidateQueries({ queryKey }),
+      onMutate: snapshot,
+      onSuccess: (_data, { id, task }) => {
+        toast('Task edited successfully!');
+        // Write the confirmed text and clear the pending shimmer.
+        animate(() => {
+          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+            (old ?? []).map((t) => (t.id === id ? { ...t, task, pending: false } : t)),
+          );
+        });
+      },
+      onError: (error, _vars, context) => {
+        toast.error(error.message);
+        rollback(context?.previous);
+      },
     }),
   );
 
@@ -168,14 +233,7 @@ function App() {
       });
     });
 
-    createTaskMutation.mutate(
-      { id, userId: user.id, task: trimmed },
-      {
-        onSettled: () => {
-          queryClient.invalidateQueries({ queryKey });
-        },
-      },
-    );
+    createTaskMutation.mutate({ id, userId: user.id, task: trimmed });
 
     closeCreate();
   };
