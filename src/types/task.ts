@@ -31,6 +31,6 @@ export type TasksList = Task[];
  */
 export type OptimisticTaskAction =
   | { type: 'create'; payload: Task }
-  | { type: 'edit'; payload: { id: string; task: string } }
+  | { type: 'edit'; payload: { id: string; task: string; pending?: boolean } }
   | { type: 'update'; payload: { id: string; status: TaskStatus } }
   | { type: 'delete'; payload: { id: string } };

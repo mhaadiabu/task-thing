@@ -1,7 +1,7 @@
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useMemo, useOptimistic, useState, startTransition, ViewTransition } from 'react';
+import { useMemo, useOptimistic, useRef, useState, startTransition, ViewTransition } from 'react';
 import { toast } from 'sonner';
 
 import { EditTask } from '@/components/edit-task';
@@ -16,7 +16,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { authClient } from '@/lib/auth-client';
 import { queryClient, api } from '@/utils/trpc';
 
-import type { OptimisticTaskAction, TaskStatus, TasksList } from '../types/task';
+import type { OptimisticTaskAction, Task as TaskItem, TaskStatus, TasksList } from '../types/task';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
@@ -66,9 +66,13 @@ function App() {
     tasks,
     (state: TasksList, action: OptimisticTaskAction): TasksList => {
       switch (action.type) {
+        case 'create':
+          return state.some((t) => t.id === action.payload.id) ? state : [...state, action.payload];
         case 'edit':
           return state.map((t) =>
-            t.id === action.payload.id ? { ...t, task: action.payload.task, pending: true } : t,
+            t.id === action.payload.id
+              ? { ...t, task: action.payload.task, pending: action.payload.pending ?? true }
+              : t,
           );
         case 'update':
           return state.map((t) =>
@@ -82,98 +86,112 @@ function App() {
     },
   );
 
-  // Snapshot the cache before a mutation so failures can roll back to
-  // server truth. Restoring it also drops the useOptimistic layer, so the
-  // rollback animates instead of jumping.
-  const snapshot = async () => {
-    await queryClient.cancelQueries({ queryKey });
-    return { previous: queryClient.getQueryData<TasksList>(queryKey) };
+  // Per-row operation sequence. With a slow backend, settles can land out
+  // of order or after newer ops; only the latest op for a row may reconcile
+  // or roll back, otherwise a stale settle yanks the row back mid-animation.
+  const rowSeq = useRef<Record<string, number>>({});
+
+  const beginOp = (id: string) => {
+    const seq = (rowSeq.current[id] ?? 0) + 1;
+    rowSeq.current[id] = seq;
+    return seq;
   };
 
-  const rollback = (previous: TasksList | undefined) => {
-    if (!previous) return;
-    animate(() => queryClient.setQueryData(queryKey, previous));
+  const isLatestOp = (id: string, seq: number) => rowSeq.current[id] === seq;
+
+  // Cache writes commit synchronously outside transitions, so the cache only
+  // ever holds server truth reconciled with zero-layout-delta writes (same
+  // order, same visuals). Every visible change goes through the optimistic
+  // layer above, which paints inside transitions and animates.
+  const prepareOp = (id: string) => {
+    const seq = beginOp(id);
+    const done = queryClient.cancelQueries({ queryKey }).then(() => ({ seq }));
+    return done;
   };
 
   const createTaskMutation = useMutation(
     api.createTask.mutationOptions({
-      onSuccess: (row) => {
+      onMutate: ({ id }) => prepareOp(id),
+      onSuccess: (row, _vars, context) => {
+        if (!row || !context || !isLatestOp(row.id, context.seq)) return;
         toast.success('Task created!');
-        // Swap the optimistic placeholder for the canonical row so the
-        // shimmer cross-fades away. No refetch: it would land outside the
-        // transition and stomp the enter animation.
-        if (!row) return;
-        animate(() => {
-          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
-            (old ?? []).map((t) => (t.id === row.id ? { ...row } : t)),
-          );
-        });
+        // Swap the placeholder for the canonical row. Same position, only
+        // the shimmer flag changes, so this commit is invisible.
+        queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+          (old ?? []).map((t) => (t.id === row.id ? { ...row } : t)),
+        );
       },
       onError: (error, vars) => {
         toast.error(error.message);
-        // Roll the placeholder back out.
-        animate(() => {
-          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
-            (old ?? []).filter((t) => t.id !== vars.id),
-          );
-        });
+        // Undo the placeholder through the optimistic layer so it fades out.
+        animate(() => mutateOptimisticTask({ type: 'delete', payload: { id: vars.id } }));
       },
     }),
   );
 
   const updateTaskMutation = useMutation(
     api.updateTask.mutationOptions({
-      onMutate: snapshot,
-      onSuccess: (_data, { id, status }) => {
+      onMutate: ({ id }) => prepareOp(id),
+      onSuccess: (_data, { id, status }, context) => {
+        if (!context || !isLatestOp(id, context.seq)) return;
         toast.success('Task updated!');
-        // Reconcile the cache so the optimistic layer drops cleanly.
-        animate(() => {
-          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
-            (old ?? []).map((t) => (t.id === id ? { ...t, status } : t)),
-          );
-        });
+        queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+          (old ?? []).map((t) => (t.id === id ? { ...t, status } : t)),
+        );
       },
-      onError: (error, _vars, context) => {
+      onError: (error, { id, status }, context) => {
         toast.error(error.message);
-        rollback(context?.previous);
+        if (!context || !isLatestOp(id, context.seq)) return;
+        // Flip back through the optimistic layer so the row glides home.
+        const prev: TaskStatus = status === 'pending' ? 'completed' : 'pending';
+        animate(() => mutateOptimisticTask({ type: 'update', payload: { id, status: prev } }));
       },
     }),
   );
 
   const deleteTaskMutation = useMutation(
     api.deleteTask.mutationOptions({
-      onMutate: snapshot,
-      onSuccess: (_data, { id }) => {
+      onMutate: ({ id }) => prepareOp(id),
+      onSuccess: (_data, { id }, context) => {
+        if (!context || !isLatestOp(id, context.seq)) return;
         toast.success('Task deleted!');
-        // Drop the row from the cache too, so no refetch is needed.
-        animate(() => {
-          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
-            (old ?? []).filter((t) => t.id !== id),
-          );
-        });
+        queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+          (old ?? []).filter((t) => t.id !== id),
+        );
       },
-      onError: (error, _vars, context) => {
+      onError: (error, { id }, context) => {
         toast.error(error.message);
-        rollback(context?.previous);
+        if (!context || !isLatestOp(id, context.seq)) return;
+        // Re-insert the lost row through the optimistic layer so it glides back.
+        const row = queryClient.getQueryData<TasksList>(queryKey)?.find((t) => t.id === id);
+        if (!row) return;
+        const restore: TaskItem = { ...row };
+        animate(() => mutateOptimisticTask({ type: 'create', payload: restore }));
       },
     }),
   );
 
   const editTaskMutation = useMutation(
     api.editTask.mutationOptions({
-      onMutate: snapshot,
-      onSuccess: (_data, { id, task }) => {
+      onMutate: ({ id }) => prepareOp(id),
+      onSuccess: (_data, { id, task }, context) => {
+        if (!context || !isLatestOp(id, context.seq)) return;
         toast('Task edited successfully!');
         // Write the confirmed text and clear the pending shimmer.
-        animate(() => {
-          queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
-            (old ?? []).map((t) => (t.id === id ? { ...t, task, pending: false } : t)),
-          );
-        });
+        queryClient.setQueryData(queryKey, (old: TasksList | undefined) =>
+          (old ?? []).map((t) => (t.id === id ? { ...t, task, pending: false } : t)),
+        );
       },
-      onError: (error, _vars, context) => {
+      onError: (error, { id }, context) => {
         toast.error(error.message);
-        rollback(context?.previous);
+        if (!context || !isLatestOp(id, context.seq)) return;
+        // Restore the previous text through the optimistic layer (without
+        // re-marking it pending: no confirmation is coming).
+        const prev = queryClient.getQueryData<TasksList>(queryKey)?.find((t) => t.id === id);
+        if (!prev) return;
+        animate(() =>
+          mutateOptimisticTask({ type: 'edit', payload: { id, task: prev.task, pending: false } }),
+        );
       },
     }),
   );
@@ -210,26 +228,21 @@ function App() {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    // Show a pending row in the list immediately by writing it to the cache
-    // (with pending: true). The mutation runs in the background and on success
-    // replaces the placeholder with the canonical row (same id) so the
-    // ViewTransition just cross-fades the shimmer away.
+    // Dispatch the placeholder through the optimistic layer (not the query
+    // cache: cache writes commit outside transitions and can't animate).
+    // It sorts straight to the top, so it rises in while the list drops.
     animate(() => {
-      queryClient.setQueryData(queryKey, (old: TasksList | undefined) => {
-        const list = old ?? [];
-        if (list.some((t) => t.id === id)) return list;
-        return [
-          ...list,
-          {
-            id,
-            userId: user.id,
-            task: trimmed,
-            status: 'pending' as const,
-            createdAt: now,
-            updatedAt: now,
-            pending: true,
-          },
-        ];
+      mutateOptimisticTask({
+        type: 'create',
+        payload: {
+          id,
+          userId: user.id,
+          task: trimmed,
+          status: 'pending' as const,
+          createdAt: now,
+          updatedAt: now,
+          pending: true,
+        },
       });
     });
 
