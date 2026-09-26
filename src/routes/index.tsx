@@ -1,7 +1,7 @@
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { CircleMinus, LogOut, Plus, SearchX } from 'lucide-react';
-import { useMemo, useOptimistic, useState, useTransition, ViewTransition } from 'react';
+import { useMemo, useOptimistic, useState, startTransition, ViewTransition } from 'react';
 import { toast } from 'sonner';
 
 import { EditTask } from '@/components/edit-task';
@@ -37,6 +37,16 @@ export const Route = createFileRoute('/')({
 const STATUS_ORDER: Array<TaskStatus> = ['pending', 'completed'];
 
 /**
+ * Run a UI update inside a transition. Finishes any running view
+ * transition first so fast clicks respond right away instead of
+ * queueing behind the current animation.
+ */
+function animate(update: () => void) {
+  document.activeViewTransition?.skipTransition();
+  startTransition(update);
+}
+
+/**
  * Render the main tasks UI with search, list, create/edit controls, and auth-aware navigation.
  */
 function App() {
@@ -47,7 +57,6 @@ function App() {
   const navigate = useNavigate();
   const isSessionLoading = authClient.useSession().isPending;
 
-  const [, startTransition] = useTransition();
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -119,12 +128,12 @@ function App() {
     });
   };
 
-  const openCreate = () => startTransition(() => setShowTaskInput(true));
+  const openCreate = () => animate(() => setShowTaskInput(true));
 
-  const closeCreate = () => startTransition(() => setShowTaskInput(false));
+  const closeCreate = () => animate(() => setShowTaskInput(false));
 
   const startEdit = (id: string) => {
-    startTransition(() => {
+    animate(() => {
       setIsEditing(id);
     });
     closeCreate();
@@ -140,7 +149,7 @@ function App() {
     // (with pending: true). The mutation runs in the background and on success
     // replaces the placeholder with the canonical row (same id) so the
     // ViewTransition just cross-fades the shimmer away.
-    startTransition(() => {
+    animate(() => {
       queryClient.setQueryData(queryKey, (old: TasksList | undefined) => {
         const list = old ?? [];
         if (list.some((t) => t.id === id)) return list;
@@ -173,14 +182,14 @@ function App() {
 
   const handleToggle = (id: string, currentStatus: TaskStatus) => {
     const newStatus: TaskStatus = currentStatus === 'pending' ? 'completed' : 'pending';
-    startTransition(async () => {
+    animate(() => {
       mutateOptimisticTask({ type: 'update', payload: { id, status: newStatus } });
       updateTaskMutation.mutate({ id, status: newStatus });
     });
   };
 
   const handleDelete = (id: string) => {
-    startTransition(() => {
+    animate(() => {
       mutateOptimisticTask({ type: 'delete', payload: { id } });
       deleteTaskMutation.mutate({ id });
     });
@@ -189,24 +198,33 @@ function App() {
   const handleEdit = (id: string, nextText: string) => {
     const trimmed = nextText.trim();
     if (!trimmed) return;
-    startTransition(() => {
+    animate(() => {
       mutateOptimisticTask({ type: 'edit', payload: { id, task: trimmed } });
       editTaskMutation.mutate({ id, task: trimmed });
       setIsEditing(null);
     });
   };
 
-  const cancelEdit = () => startTransition(() => setIsEditing(null));
+  const cancelEdit = () => animate(() => setIsEditing(null));
 
-  // Alt + T to toggle create task input
-  useKeyboardShortcut({ key: 't', alt: true }, () =>
-    startTransition(() => setShowTaskInput((prev) => !prev)),
-  );
+  // Alt + T to toggle create task input. Keyboard-driven changes set state
+  // directly (no transition) so they feel instant.
+  useKeyboardShortcut({ key: 't', alt: true }, () => {
+    document.activeViewTransition?.skipTransition();
+    setShowTaskInput((prev) => !prev);
+  });
 
   // Escape to close create task input
-  useKeyboardShortcut({ key: 'Escape' }, () => startTransition(() => setShowTaskInput(false)), {
-    enabled: showTaskInput,
-  });
+  useKeyboardShortcut(
+    { key: 'Escape' },
+    () => {
+      document.activeViewTransition?.skipTransition();
+      setShowTaskInput(false);
+    },
+    {
+      enabled: showTaskInput,
+    },
+  );
 
   const toMs = (d: string | Date | null) => (d ? new Date(d).getTime() : 0);
 
@@ -251,7 +269,7 @@ function App() {
             <ul className='m-0 flex list-none flex-col p-0'>
               {filteredTasks.map((task) =>
                 isEditing === task.id ? (
-                  <ViewTransition key={`edit-${task.id}`} enter='scale' exit='scale'>
+                  <ViewTransition key={`edit-${task.id}`} default='vt-move vt-presence'>
                     <li className='block'>
                       <EditTask
                         task={task.task}
@@ -261,7 +279,7 @@ function App() {
                     </li>
                   </ViewTransition>
                 ) : (
-                  <ViewTransition key={task.id} enter='slide-up' exit='scale'>
+                  <ViewTransition key={task.id} default='vt-move vt-presence'>
                     <li className='block'>
                       <Task
                         {...task}

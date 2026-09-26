@@ -23,7 +23,7 @@ export const EmptyTask = ({
   title: string;
   description: string;
 }) => (
-  <ViewTransition enter='scale' exit='scale'>
+  <ViewTransition enter='vt-presence' exit='vt-presence' default='none'>
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant='icon'>{icon}</EmptyMedia>

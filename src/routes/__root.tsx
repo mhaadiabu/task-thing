@@ -3,6 +3,7 @@ import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
 
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 
+import { SkipOnScroll } from '@/components/skip-on-scroll';
 import TaskProvider from '@/components/TaskProvider';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -23,6 +24,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootComponent() {
   return (
     <TaskProvider>
+      <SkipOnScroll />
       <Outlet />
       <Toaster position='bottom-right' richColors />
     </TaskProvider>

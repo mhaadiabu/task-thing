@@ -35,7 +35,7 @@ export const NewTask = ({
   };
 
   return (
-    <ViewTransition enter='slide-up' exit='scale'>
+    <ViewTransition enter='vt-presence' exit='vt-presence' default='none'>
       <div className='mx-auto flex w-full flex-col items-end gap-2.5 py-2'>
         <Textarea
           ref={inputRef}
